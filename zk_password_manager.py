@@ -1,79 +1,74 @@
-import os
-import json
-import base64
-import nacl.secret
-import nacl.utils
-from nacl.hash import blake2b
-from nacl.encoding import RawEncoder
+import hashlib
+import secrets
 
-# Key derivation function
-def derive_key(password):
-    return blake2b(password.encode(), digest_size=32, encoder=RawEncoder)
+# One-way hash function
+def H(*args):
+    a = ":".join(str(a) for a in args)
+    return int(hashlib.sha256(a.encode("utf-8")).hexdigest(), 16)
 
-# Save encrypted password
-def save_password(service, password, master_password):
-    key = derive_key(master_password)
-    box = nacl.secret.SecretBox(key)
-    nonce = nacl.utils.random(nacl.secret.SecretBox.NONCE_SIZE)
-    encrypted = box.encrypt(password.encode(), nonce)
-    data = {
-        'nonce': base64.b64encode(nonce).decode(),
-        'ciphertext': base64.b64encode(encrypted.ciphertext).decode()
-    }
-    with open(f"{service}.json", "w") as f:
-        json.dump(data, f)
+# Random number generator
+def cryptrand(n=1024):
+    return secrets.randbits(n)
 
-# Load and decrypt a password
-def load_password(service, master_password):
-    key = derive_key(master_password)
-    box = nacl.secret.SecretBox(key)
-    try:
-        with open(f"{service}.json", "r") as f:
-            data = json.load(f)
-        nonce = base64.b64decode(data['nonce'])
-        ciphertext = base64.b64decode(data['ciphertext'])
-        plaintext = box.decrypt(ciphertext, nonce)
-        return plaintext.decode()
-    except FileNotFoundError:
-        return "Service not found."
-    except Exception as e:
-        return f"Decryption failed: {str(e)}"
+# Large safe prime N (2048-bit) and base g (generator)
+N = int('FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5F4385B9E8A3B1469B1A7E3F4ABE83B203F1B96F64B9F9C8B9E3F8B53FC8D20F51E5D69EE1C2973C14C5066CC8043546A99F56E0E1BA77DB39BB6363E8D0D512F83C16D353BEE7AC7234A835A1456B33C9CC36A189F04868D3319D7DF77A89B5453DA6D0EBCD9C2C2F7B782A58F33', 16)
+g = 2
+k = H(N, g)  # Multiplier parameter
 
-# List all saved services
-def list_services():
-    return [file.split('.')[0] for file in os.listdir('.') if file.endswith('.json')]
+class PasswordManager:
+    def __init__(self):
+        self.users = {}
 
-# Main function to handle the command line interface
-def main():
-    while True:
-        print("\nPassword Manager")
-        print("1. Add a new password")
-        print("2. Retrieve a password")
-        print("3. List all services")
-        print("4. Exit")
-        choice = input("Enter your choice: ")
+    def register(self, username, password):
+        salt = cryptrand(64)
+        x = H(salt, username, password)
+        v = pow(g, x, N)
+        self.users[username] = {"salt": salt, "verifier": v}
+        print(f"User {username} registered successfully.")
 
-        if choice == '1':
-            service = input("Enter the service name: ")
-            password = input("Enter the password: ")
-            master_password = input("Enter your master password: ")
-            save_password(service, password, master_password)
-            print("Password saved successfully!")
-        elif choice == '2':
-            service = input("Enter the service name: ")
-            master_password = input("Enter your master password: ")
-            result = load_password(service, master_password)
-            print(f"Password: {result}")
-        elif choice == '3':
-            services = list_services()
-            print("Saved services:")
-            for service in services:
-                print(service)
-        elif choice == '4':
-            print("Exiting...")
-            break
+    def authenticate(self, username, password):
+        if username not in self.users:
+            print(f"User {username} not found.")
+            return False
+        
+        try:
+            user = self.users[username]
+            salt, v = user["salt"], user["verifier"]
+
+            # SRP protocol
+            a, b = cryptrand(), cryptrand()
+            A, B = pow(g, a, N), (k * v + pow(g, b, N)) % N
+
+            u = H(A, B)
+            x = H(salt, username, password)
+            S_c = pow(B - k * pow(g, x, N), a + u * x, N)
+            K_c = H(S_c)
+
+            S_s = pow(A * pow(v, u, N), b, N)
+            K_s = H(S_s)
+
+            if K_c == K_s:
+                print(f"User {username} authenticated successfully.")
+                return True
+            else:
+                print("Authentication failed.")
+                return False
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return False
+
+    def change_password(self, username, old_password, new_password):
+        if self.authenticate(username, old_password):
+            salt = cryptrand(64)
+            x = H(salt, username, new_password)
+            v = pow(g, x, N)
+            self.users[username] = {"salt": salt, "verifier": v}
+            print(f"Password changed successfully for user {username}.")
         else:
-            print("Invalid choice, please try again.")
+            print("Failed to change password due to failed authentication.")
 
-if __name__ == "__main__":
-    main()
+# Example usage
+password_manager = PasswordManager()
+password_manager.register("alice", "mypassword")
+password_manager.authenticate("alice", "mypassword")
+password_manager.change_password("alice", "mypassword", "newpassword")
