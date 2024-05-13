@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 import os
+from zk_password_manager import PasswordManager
 
 class PasswordManagerApp:
     def __init__(self, master):

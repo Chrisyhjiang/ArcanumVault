@@ -1,6 +1,7 @@
 import hashlib
 import secrets
 
+
 # One-way hash function
 def H(*args):
     a = ":".join(str(a) for a in args)
