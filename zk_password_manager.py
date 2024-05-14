@@ -67,9 +67,3 @@ class PasswordManager:
             print(f"Password changed successfully for user {username}.")
         else:
             print("Failed to change password due to failed authentication.")
-
-# Example usage
-password_manager = PasswordManager()
-password_manager.register("alice", "mypassword")
-password_manager.authenticate("alice", "mypassword")
-password_manager.change_password("alice", "mypassword", "newpassword")
