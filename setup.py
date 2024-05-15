@@ -8,6 +8,7 @@ setup(
         'cryptography',
         'click',
         'python-pam',
+        # 'dbus-python',  # Comment out this line temporarily
     ],
     entry_points={
         'console_scripts': [
