@@ -210,15 +210,22 @@ def show(domain):
                 click.echo(f"No password found for {domain_name}")
 
 @vault.command()
-@click.argument('domain')
-def remove(domain):
-    """Remove a password."""
+@click.argument('vault_id')
+def remove(vault_id):
+    """Remove a password by vault ID."""
     ensure_authenticated()
-    try:
-        os.remove(get_password_file_path(domain))
-        click.echo(f"Password for {domain} removed.")
-    except FileNotFoundError:
-        click.echo(f"No password found for {domain}")
+    for file_path in DATA_DIR.glob('*.pass'):
+        with open(file_path, 'r') as f:
+            lines = f.read().splitlines()
+        if len(lines) < 4:
+            continue
+        existing_vault_id = lines[0]
+        if existing_vault_id == vault_id:
+            os.remove(file_path)
+            click.echo(f"Password with vault ID {vault_id} removed.")
+            break
+    else:
+        click.echo(f"No entry found with vault ID {vault_id}")
 
 @vault.command()
 @click.argument('domain')
