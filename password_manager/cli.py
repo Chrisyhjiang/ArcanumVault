@@ -8,11 +8,15 @@ import time
 import uuid
 import ctypes
 from ctypes import CDLL, c_void_p, c_long
+import click_completion
 
 if os.uname().sysname == "Darwin":
     import objc
     from Foundation import NSObject
     from LocalAuthentication import LAContext, LAPolicyDeviceOwnerAuthenticationWithBiometrics
+
+# Initialize click_completion
+click_completion.init()
 
 # Load the libdispatch library
 libdispatch = CDLL('/usr/lib/system/libdispatch.dylib')
@@ -117,6 +121,16 @@ def load_key():
             key = key_file.read()
     return Fernet(key)
 
+def clear_invalid_entries():
+    """Clear invalid password entries"""
+    for file_path in DATA_DIR.glob('*.pass'):
+        with open(file_path, 'r') as f:
+            lines = f.read().splitlines()
+        if len(lines) < 4:
+            click.echo(f"Invalid password file format for {file_path.name}. File content: {lines}")
+            os.remove(file_path)
+            click.echo(f"Removed invalid entry: {file_path.name}")
+
 cipher = load_key()
 
 def get_password_file_path(domain):
@@ -176,6 +190,7 @@ def insert():
 def show(domain):
     """Show passwords."""
     ensure_authenticated()
+    cipher = load_key()  # Initialize the cipher object within the function
     if domain:
         try:
             with open(get_password_file_path(domain), 'r') as f:
@@ -298,6 +313,13 @@ def update(vault_id):
     with open(file_path, 'w') as f:
         f.write(password_entry)
     click.echo(f"Updated entry with vault ID {vault_id}.")
+
+@vault.command()
+def install_completion():
+    """Install the shell completion script."""
+    shell, path = click_completion.core.install()
+    click.echo(f"{shell} completion installed in {path}")
+
 
 if __name__ == "__main__":
     vault()
