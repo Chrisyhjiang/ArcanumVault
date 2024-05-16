@@ -137,12 +137,12 @@ def is_authenticated():
 
 @click.group()
 @click.pass_context
-def cli(ctx):
+def vault(ctx):
     """Simple CLI password manager."""
     if not is_authenticated():
         authenticate_user()
 
-@cli.command()
+@vault.command()
 @click.argument('name')
 def insert(name):
     """Insert a new password."""
@@ -153,7 +153,7 @@ def insert(name):
         f.write(encrypted_password)
     click.echo(f"Password for {name} inserted.")
 
-@cli.command()
+@vault.command()
 @click.argument('name')
 def show(name):
     """Show a password."""
@@ -165,7 +165,7 @@ def show(name):
     except FileNotFoundError:
         click.echo(f"No password found for {name}")
 
-@cli.command()
+@vault.command()
 @click.argument('name')
 def remove(name):
     """Remove a password."""
@@ -175,7 +175,7 @@ def remove(name):
     except FileNotFoundError:
         click.echo(f"No password found for {name}")
 
-@cli.command()
+@vault.command()
 @click.argument('name')
 @click.argument('length', type=int)
 def generate(name, length):
@@ -191,4 +191,4 @@ def generate(name, length):
     click.echo(f"Generated password for {name}: {password}")
 
 if __name__ == '__main__':
-    cli()
+    vault()
