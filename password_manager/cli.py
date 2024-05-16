@@ -87,7 +87,7 @@ def authenticate_fingerprint_mac():
         def callback(_success, _error):
             nonlocal authenticated
             if _success:
-                click.echo("Fingerprint authentication succeeded.")
+                # click.echo("Fingerprint authentication succeeded.")
                 authenticated = True
             else:
                 click.echo(f"Fingerprint authentication error: {_error}")
