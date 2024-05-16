@@ -2,5 +2,3 @@ click
 cryptography
 pam
 pyobjc
-pyobjc-framework-Cocoa
-pyobjc-framework-LocalAuthentication

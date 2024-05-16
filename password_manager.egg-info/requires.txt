@@ -1,0 +1,6 @@
+click
+cryptography
+pam
+pyobjc-framework-Cocoa
+pyobjc-framework-LocalAuthentication
+pyobjc-core
