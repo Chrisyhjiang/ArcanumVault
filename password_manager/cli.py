@@ -5,11 +5,26 @@ from cryptography.fernet import Fernet
 from pathlib import Path
 import pam
 import time
+import ctypes
+from ctypes import CDLL, c_void_p, c_long
 
 if os.uname().sysname == "Darwin":
     import objc
     from Foundation import NSObject
     from LocalAuthentication import LAContext, LAPolicyDeviceOwnerAuthenticationWithBiometrics
+
+# Load the libdispatch library
+libdispatch = CDLL('/usr/lib/system/libdispatch.dylib')
+
+# Define function signatures for dispatch semaphores
+libdispatch.dispatch_semaphore_create.argtypes = [c_long]
+libdispatch.dispatch_semaphore_create.restype = c_void_p
+
+libdispatch.dispatch_semaphore_wait.argtypes = [c_void_p, c_long]
+libdispatch.dispatch_semaphore_wait.restype = c_long
+
+libdispatch.dispatch_semaphore_signal.argtypes = [c_void_p]
+libdispatch.dispatch_semaphore_signal.restype = c_long
 
 # Define the data directory
 DATA_DIR = Path.home() / ".password_manager" / "data"
@@ -65,17 +80,26 @@ def authenticate_fingerprint_mac():
     
     if success:
         click.echo("Please authenticate using your fingerprint...")
-        success, error = context.evaluatePolicy_localizedReason_reply_(
+        semaphore = libdispatch.dispatch_semaphore_create(0)
+        
+        def callback(_success, _error):
+            nonlocal authenticated
+            if _success:
+                click.echo("Fingerprint authentication succeeded.")
+                authenticated = True
+            else:
+                click.echo(f"Fingerprint authentication error: {_error}")
+                authenticated = False
+            libdispatch.dispatch_semaphore_signal(semaphore)
+
+        authenticated = False
+        context.evaluatePolicy_localizedReason_reply_(
             LAPolicyDeviceOwnerAuthenticationWithBiometrics,
             "Authenticate to access password manager",
-            None
+            callback
         )
-        if success:
-            click.echo("Fingerprint authentication succeeded.")
-            return True
-        else:
-            click.echo(f"Fingerprint authentication error: {error}")
-            return False
+        libdispatch.dispatch_semaphore_wait(semaphore, c_long(-1))
+        return authenticated
     else:
         click.echo(f"Fingerprint authentication not available: {error}")
         return False
