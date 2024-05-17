@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import os
 import getpass
 import click
@@ -11,38 +9,97 @@ import uuid
 import ctypes
 from ctypes import CDLL, c_void_p, c_long
 
-# Initialize the completion scripts for zsh (not needed in this manual setup)
-# import click_completion
-# from click_completion import init, install
-# init()
-
 if os.uname().sysname == "Darwin":
     import objc
     from Foundation import NSObject
     from LocalAuthentication import LAContext, LAPolicyDeviceOwnerAuthenticationWithBiometrics
 
-# Load the libdispatch library
 libdispatch = CDLL('/usr/lib/system/libdispatch.dylib')
-
-# Define function signatures for dispatch semaphores
 libdispatch.dispatch_semaphore_create.argtypes = [c_long]
 libdispatch.dispatch_semaphore_create.restype = c_void_p
-
 libdispatch.dispatch_semaphore_wait.argtypes = [c_void_p, c_long]
 libdispatch.dispatch_semaphore_wait.restype = c_long
-
 libdispatch.dispatch_semaphore_signal.argtypes = [c_void_p]
 libdispatch.dispatch_semaphore_signal.restype = c_long
 
-# Define the data directory
 DATA_DIR = Path.home() / ".password_manager" / "data"
 KEY_FILE = Path.home() / ".password_manager" / "key.key"
 SESSION_FILE = Path.home() / ".password_manager" / ".session"
 
-# Ensure data directory exists
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-SESSION_TIMEOUT = 3600  # Set session timeout to 3600 seconds
+SESSION_TIMEOUT = 3600  # Set session timeout to 3600 seconds (1 hour)
+
+def set_permissions(path):
+    os.chmod(path, 0o600)  # Owner can read and write
+
+def load_key():
+    """Load the previously generated key"""
+    if not KEY_FILE.exists():
+        key = Fernet.generate_key()
+        with open(KEY_FILE, 'wb') as key_file:
+            key_file.write(key)
+        set_permissions(KEY_FILE)
+    else:
+        with open(KEY_FILE, 'rb') as key_file:
+            key = key_file.read()
+    return Fernet(key)
+
+cipher = load_key()
+
+def generate_new_key():
+    """Generate a new encryption key."""
+    return Fernet.generate_key()
+
+def reencrypt_passwords(old_cipher, new_cipher):
+    """Re-encrypt all stored passwords with the new encryption key."""
+    for file_path in DATA_DIR.glob('*.pass'):
+        with open(file_path, 'r') as f:
+            lines = f.read().splitlines()
+            if len(lines) < 3:
+                click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
+                continue
+            description = lines[0]
+            user_id = lines[1]
+            encrypted_password = lines[2].encode()
+            # Decrypt with the old cipher
+            decrypted_password = old_cipher.decrypt(encrypted_password)
+            # Encrypt with the new cipher
+            new_encrypted_password = new_cipher.encrypt(decrypted_password)
+            password_entry = f"{description}\n{user_id}\n{new_encrypted_password.decode()}"
+            # Write the new encrypted password back to the file
+            with open(file_path, 'w') as f:
+                f.write(password_entry)
+
+def store_new_key(new_key):
+    """Store the new encryption key in the key file."""
+    with open(KEY_FILE, 'wb') as key_file:
+        key_file.write(new_key)
+    set_permissions(KEY_FILE)  # Ensure secure permissions
+
+def is_authenticated():
+    """Check if the user is authenticated."""
+    if not SESSION_FILE.exists():
+        return False
+    with open(SESSION_FILE, 'r') as f:
+        timestamp = int(f.read().strip())
+    if time.time() - timestamp > SESSION_TIMEOUT:
+        os.remove(SESSION_FILE)
+        return False
+    return True
+
+def ensure_authenticated():
+    """Ensure the user is authenticated before proceeding."""
+    if not is_authenticated():
+        click.echo("You need to authenticate first. Run 'vault authenticate' to authenticate.")
+        exit(1)
+    else:
+        refresh_session()
+
+def refresh_session():
+    """Refresh the session timestamp."""
+    with open(SESSION_FILE, 'w') as f:
+        f.write(str(int(time.time())))
 
 def authenticate_user():
     """Authenticate the user using PAM and optionally fingerprint."""
@@ -80,69 +137,6 @@ def authenticate_user():
             exit(1)
     else:
         click.echo("Invalid choice.")
-        exit(1)
-
-def authenticate_fingerprint_mac():
-    """Authenticate the user using fingerprint on macOS."""
-    context = LAContext.alloc().init()
-    success, error = context.canEvaluatePolicy_error_(LAPolicyDeviceOwnerAuthenticationWithBiometrics, None)
-    
-    if success:
-        click.echo("Please authenticate using your fingerprint...")
-        semaphore = libdispatch.dispatch_semaphore_create(0)
-        
-        def callback(_success, _error):
-            nonlocal authenticated
-            if _success:
-                authenticated = True
-            else:
-                click.echo(f"Fingerprint authentication error: {_error}")
-                authenticated = False
-            libdispatch.dispatch_semaphore_signal(semaphore)
-
-        authenticated = False
-        context.evaluatePolicy_localizedReason_reply_(
-            LAPolicyDeviceOwnerAuthenticationWithBiometrics,
-            "Authenticate to access password manager",
-            callback
-        )
-        libdispatch.dispatch_semaphore_wait(semaphore, c_long(-1))
-        return authenticated
-    else:
-        click.echo(f"Fingerprint authentication not available: {error}")
-        return False
-
-def load_key():
-    """Load the previously generated key"""
-    if not KEY_FILE.exists():
-        key = Fernet.generate_key()
-        with open(KEY_FILE, 'wb') as key_file:
-            key_file.write(key)
-    else:
-        with open(KEY_FILE, 'rb') as key_file:
-            key = key_file.read()
-    return Fernet(key)
-
-cipher = load_key()
-
-def get_password_file_path(domain):
-    return DATA_DIR / f"{domain}.pass"
-
-def is_authenticated():
-    """Check if the user is authenticated."""
-    if not SESSION_FILE.exists():
-        return False
-    with open(SESSION_FILE, 'r') as f:
-        timestamp = int(f.read().strip())
-    if time.time() - timestamp > SESSION_TIMEOUT:  # Adjusted session timeout
-        os.remove(SESSION_FILE)
-        return False
-    return True
-
-def ensure_authenticated():
-    """Ensure the user is authenticated before proceeding."""
-    if not is_authenticated():
-        click.echo("You need to authenticate first. Run 'vault authenticate' to authenticate.")
         exit(1)
 
 @click.group(invoke_without_command=True)
@@ -310,6 +304,21 @@ def install_completion():
     """Install the shell completion"""
     click.echo('To activate completion for this session, source the script:')
     click.echo('source ~/.password_manager_completion/vault_completion.zsh')
+
+@vault.command()
+def rotate_key():
+    """Rotate the encryption key and re-encrypt all stored passwords."""
+    ensure_authenticated()
+    old_key = cipher._signing_key
+    new_key = generate_new_key()
+    old_cipher = cipher
+    new_cipher = Fernet(new_key)
+
+    click.echo("Re-encrypting all passwords with the new key...")
+    reencrypt_passwords(old_cipher, new_cipher)
+
+    store_new_key(new_key)
+    click.echo("Key rotation completed successfully.")
 
 if __name__ == "__main__":
     vault()

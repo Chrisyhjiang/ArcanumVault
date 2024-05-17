@@ -11,3 +11,5 @@ First, install the necessary system dependencies:
 ```bash
 sudo apt-get install libpam0g-dev fprintd libpam-fprintd
 ```
+
+## Security features:
