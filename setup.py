@@ -6,14 +6,20 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'cryptography',
         'click',
+        'cryptography',
         'python-pam',
-        'six', 
-        'click-completion'
+        'pathlib',
+        # Add other dependencies if needed
     ],
     entry_points='''
         [console_scripts]
         vault=password_manager.cli:vault
     ''',
+    data_files=[
+        ('share/zsh/site-functions', ['vault_completion.zsh']),
+    ],
+    package_data={
+        '': ['*.zsh'],
+    },
 )

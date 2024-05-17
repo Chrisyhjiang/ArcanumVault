@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import getpass
 import click
@@ -8,15 +10,16 @@ import time
 import uuid
 import ctypes
 from ctypes import CDLL, c_void_p, c_long
-import click_completion
+
+# Initialize the completion scripts for zsh (not needed in this manual setup)
+# import click_completion
+# from click_completion import init, install
+# init()
 
 if os.uname().sysname == "Darwin":
     import objc
     from Foundation import NSObject
     from LocalAuthentication import LAContext, LAPolicyDeviceOwnerAuthenticationWithBiometrics
-
-# Initialize click_completion
-click_completion.init()
 
 # Load the libdispatch library
 libdispatch = CDLL('/usr/lib/system/libdispatch.dylib')
@@ -91,7 +94,6 @@ def authenticate_fingerprint_mac():
         def callback(_success, _error):
             nonlocal authenticated
             if _success:
-                # click.echo("Fingerprint authentication succeeded.")
                 authenticated = True
             else:
                 click.echo(f"Fingerprint authentication error: {_error}")
@@ -120,16 +122,6 @@ def load_key():
         with open(KEY_FILE, 'rb') as key_file:
             key = key_file.read()
     return Fernet(key)
-
-def clear_invalid_entries():
-    """Clear invalid password entries"""
-    for file_path in DATA_DIR.glob('*.pass'):
-        with open(file_path, 'r') as f:
-            lines = f.read().splitlines()
-        if len(lines) < 4:
-            click.echo(f"Invalid password file format for {file_path.name}. File content: {lines}")
-            os.remove(file_path)
-            click.echo(f"Removed invalid entry: {file_path.name}")
 
 cipher = load_key()
 
@@ -190,7 +182,6 @@ def insert():
 def show(domain):
     """Show passwords."""
     ensure_authenticated()
-    cipher = load_key()  # Initialize the cipher object within the function
     if domain:
         try:
             with open(get_password_file_path(domain), 'r') as f:
@@ -314,12 +305,11 @@ def update(vault_id):
         f.write(password_entry)
     click.echo(f"Updated entry with vault ID {vault_id}.")
 
-@vault.command()
+@vault.command(name="install-completion")
 def install_completion():
-    """Install the shell completion script."""
-    shell, path = click_completion.core.install()
-    click.echo(f"{shell} completion installed in {path}")
-
+    """Install the shell completion"""
+    click.echo('To activate completion for this session, source the script:')
+    click.echo('source ~/.password_manager_completion/vault_completion.zsh')
 
 if __name__ == "__main__":
     vault()
