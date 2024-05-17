@@ -1,18 +1,23 @@
 import os
 import getpass
 import click
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from pathlib import Path
 import pam
 import time
 import uuid
 import ctypes
 from ctypes import CDLL, c_void_p, c_long
+import click_completion
+from click_completion import core
 
 if os.uname().sysname == "Darwin":
     import objc
     from Foundation import NSObject
     from LocalAuthentication import LAContext, LAPolicyDeviceOwnerAuthenticationWithBiometrics
+
+# Initialize click completion
+click_completion.init()
 
 libdispatch = CDLL('/usr/lib/system/libdispatch.dylib')
 libdispatch.dispatch_semaphore_create.argtypes = [c_long]
@@ -25,16 +30,39 @@ libdispatch.dispatch_semaphore_signal.restype = c_long
 DATA_DIR = Path.home() / ".password_manager" / "data"
 KEY_FILE = Path.home() / ".password_manager" / "key.key"
 SESSION_FILE = Path.home() / ".password_manager" / ".session"
-
 DATA_DIR.mkdir(parents=True, exist_ok=True)
-
 SESSION_TIMEOUT = 3600  # Set session timeout to 3600 seconds (1 hour)
 
-def set_permissions(path):
-    os.chmod(path, 0o600)  # Owner can read and write
+def authenticate_fingerprint_mac():
+    """Authenticate the user using fingerprint on macOS."""
+    context = LAContext.alloc().init()
+    success, error = context.canEvaluatePolicy_error_(LAPolicyDeviceOwnerAuthenticationWithBiometrics, None)
+    
+    if success:
+        click.echo("Please authenticate using your fingerprint...")
+        semaphore = libdispatch.dispatch_semaphore_create(0)
+        
+        def callback(_success, _error):
+            nonlocal authenticated
+            if _success:
+                authenticated = True
+            else:
+                authenticated = False
+            libdispatch.dispatch_semaphore_signal(semaphore)
+
+        authenticated = False
+        context.evaluatePolicy_localizedReason_reply_(
+            LAPolicyDeviceOwnerAuthenticationWithBiometrics,
+            "Authenticate to access password manager",
+            callback
+        )
+        libdispatch.dispatch_semaphore_wait(semaphore, c_long(-1))
+        return authenticated
+    else:
+        click.echo(f"Fingerprint authentication not available: {error}")
+        return False
 
 def load_key():
-    """Load the previously generated key"""
     if not KEY_FILE.exists():
         key = Fernet.generate_key()
         with open(KEY_FILE, 'wb') as key_file:
@@ -48,37 +76,38 @@ def load_key():
 cipher = load_key()
 
 def generate_new_key():
-    """Generate a new encryption key."""
     return Fernet.generate_key()
 
 def reencrypt_passwords(old_cipher, new_cipher):
-    """Re-encrypt all stored passwords with the new encryption key."""
     for file_path in DATA_DIR.glob('*.pass'):
         with open(file_path, 'r') as f:
             lines = f.read().splitlines()
-            if len(lines) < 3:
+            if len(lines) < 4:
                 click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
                 continue
-            description = lines[0]
-            user_id = lines[1]
-            encrypted_password = lines[2].encode()
-            # Decrypt with the old cipher
-            decrypted_password = old_cipher.decrypt(encrypted_password)
-            # Encrypt with the new cipher
+            description = lines[1]
+            user_id = lines[2]
+            encrypted_password = lines[3].encode()
+            try:
+                decrypted_password = old_cipher.decrypt(encrypted_password)
+            except InvalidToken:
+                click.echo(f"Failed to decrypt {file_path.stem} with the old key. Skipping.")
+                continue
             new_encrypted_password = new_cipher.encrypt(decrypted_password)
-            password_entry = f"{description}\n{user_id}\n{new_encrypted_password.decode()}"
-            # Write the new encrypted password back to the file
+            password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
             with open(file_path, 'w') as f:
                 f.write(password_entry)
 
+def set_permissions(path):
+    """Set secure permissions for the file."""
+    os.chmod(path, 0o600)  # Owner can read and write
+
 def store_new_key(new_key):
-    """Store the new encryption key in the key file."""
     with open(KEY_FILE, 'wb') as key_file:
         key_file.write(new_key)
-    set_permissions(KEY_FILE)  # Ensure secure permissions
+    set_permissions(KEY_FILE)
 
 def is_authenticated():
-    """Check if the user is authenticated."""
     if not SESSION_FILE.exists():
         return False
     with open(SESSION_FILE, 'r') as f:
@@ -89,7 +118,6 @@ def is_authenticated():
     return True
 
 def ensure_authenticated():
-    """Ensure the user is authenticated before proceeding."""
     if not is_authenticated():
         click.echo("You need to authenticate first. Run 'vault authenticate' to authenticate.")
         exit(1)
@@ -97,12 +125,10 @@ def ensure_authenticated():
         refresh_session()
 
 def refresh_session():
-    """Refresh the session timestamp."""
     with open(SESSION_FILE, 'w') as f:
         f.write(str(int(time.time())))
 
 def authenticate_user():
-    """Authenticate the user using PAM and optionally fingerprint."""
     pam_auth = pam.pam()
     
     try:
@@ -142,7 +168,6 @@ def authenticate_user():
 @click.group(invoke_without_command=True)
 @click.pass_context
 def vault(ctx):
-    """Simple CLI password manager."""
     if not is_authenticated():
         click.echo("You need to authenticate first.")
         ctx.invoke(authenticate)
@@ -151,12 +176,10 @@ def vault(ctx):
 
 @vault.command()
 def authenticate():
-    """Authenticate the user."""
     authenticate_user()
 
 @vault.command()
 def insert():
-    """Insert a new password."""
     ensure_authenticated()
     vault_id = str(uuid.uuid4())
     domain = click.prompt('Domain Name')
@@ -164,9 +187,7 @@ def insert():
     user_id = click.prompt('User ID')
     password = click.prompt('Password', hide_input=True, confirmation_prompt=True)
     encrypted_password = cipher.encrypt(password.encode())
-    
     password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password.decode()}"
-    
     with open(get_password_file_path(domain), 'w') as f:
         f.write(password_entry)
     click.echo(f"Password for {domain} inserted with description, User ID, and vaultID {vault_id}.")
@@ -174,7 +195,6 @@ def insert():
 @vault.command()
 @click.argument('domain', required=False)
 def show(domain):
-    """Show passwords."""
     ensure_authenticated()
     if domain:
         try:
@@ -187,7 +207,11 @@ def show(domain):
                 description = lines[1]
                 user_id = lines[2]
                 encrypted_password = lines[3].encode()
-                password = cipher.decrypt(encrypted_password).decode()
+                try:
+                    password = cipher.decrypt(encrypted_password).decode()
+                except InvalidToken:
+                    click.echo(f"Failed to decrypt password for {domain}.")
+                    return
             click.echo(f"Vault ID: {vault_id}\nDescription: {description}\nUser ID: {user_id}\nPassword for {domain}: {password}")
         except FileNotFoundError:
             click.echo(f"No password found for {domain}")
@@ -204,7 +228,11 @@ def show(domain):
                     description = lines[1]
                     user_id = lines[2]
                     encrypted_password = lines[3].encode()
-                    password = cipher.decrypt(encrypted_password).decode()
+                    try:
+                        password = cipher.decrypt(encrypted_password).decode()
+                    except InvalidToken:
+                        click.echo(f"Failed to decrypt password for {domain_name}.")
+                        continue
                 click.echo(f"\nDomain: {domain_name}\nVault ID: {vault_id}\nDescription: {description}\nUser ID: {user_id}\nPassword: {password}\n")
             except FileNotFoundError:
                 click.echo(f"No password found for {domain_name}")
@@ -212,7 +240,6 @@ def show(domain):
 @vault.command()
 @click.argument('vault_id')
 def remove(vault_id):
-    """Remove a password by vault ID."""
     ensure_authenticated()
     for file_path in DATA_DIR.glob('*.pass'):
         with open(file_path, 'r') as f:
@@ -231,26 +258,21 @@ def remove(vault_id):
 @click.argument('domain')
 @click.argument('length', type=int)
 def generate(domain, length):
-    """Generate a random password."""
     ensure_authenticated()
     import random
     import string
-    
     password = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=length))
     encrypted_password = cipher.encrypt(password.encode())
-    
     vault_id = str(uuid.uuid4())
     description = click.prompt('Description')
     user_id = click.prompt('User ID')
     password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password.decode()}"
-    
     with open(get_password_file_path(domain), 'w') as f:
         f.write(password_entry)
     click.echo(f"Generated password for {domain} with description, User ID, and vaultID {vault_id}: {password}")
 
 @vault.command()
 def reformat():
-    """Reformat existing password files."""
     ensure_authenticated()
     for file_path in DATA_DIR.glob('*.pass'):
         domain_name = file_path.stem
@@ -271,7 +293,6 @@ def reformat():
 @vault.command()
 @click.argument('vault_id')
 def update(vault_id):
-    """Update a password entry by vault ID."""
     ensure_authenticated()
     for file_path in DATA_DIR.glob('*.pass'):
         with open(file_path, 'r') as f:
@@ -292,33 +313,40 @@ def update(vault_id):
     new_user_id = click.prompt('New User ID', default=user_id)
     new_password = click.prompt('New Password', hide_input=True, confirmation_prompt=True)
     encrypted_password = cipher.encrypt(new_password.encode()).decode()
-
     password_entry = f"{vault_id}\n{new_description}\n{new_user_id}\n{encrypted_password}"
-    
     with open(file_path, 'w') as f:
         f.write(password_entry)
     click.echo(f"Updated entry with vault ID {vault_id}.")
 
 @vault.command(name="install-completion")
 def install_completion():
-    """Install the shell completion"""
+    """Install or update the shell completion script."""
+    shell, path = core.install(shell='zsh', prog_name='vault')
+    click.echo(f'{shell} completion installed in {path}')
     click.echo('To activate completion for this session, source the script:')
     click.echo('source ~/.password_manager_completion/vault_completion.zsh')
 
-@vault.command()
+@vault.command(name="rotate-key")
 def rotate_key():
-    """Rotate the encryption key and re-encrypt all stored passwords."""
     ensure_authenticated()
-    old_key = cipher._signing_key
     new_key = generate_new_key()
     old_cipher = cipher
     new_cipher = Fernet(new_key)
-
     click.echo("Re-encrypting all passwords with the new key...")
     reencrypt_passwords(old_cipher, new_cipher)
-
     store_new_key(new_key)
     click.echo("Key rotation completed successfully.")
 
+@vault.command(name="delete-all")
+def delete_all():
+    """Delete all password entries."""
+    ensure_authenticated()
+    for file_path in DATA_DIR.glob('*.pass'):
+        os.remove(file_path)
+    click.echo("All password entries have been deleted.")
+
 if __name__ == "__main__":
     vault()
+
+def get_password_file_path(domain):
+    return DATA_DIR / f"{domain}.pass"

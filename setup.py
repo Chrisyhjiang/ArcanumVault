@@ -1,14 +1,4 @@
 from setuptools import setup, find_packages
-from setuptools.command.install import install
-import os
-import sys
-
-class PostInstallCommand(install):
-    """Post-installation for installation mode."""
-    def run(self):
-        install.run(self)
-        # Ensure vault_completion.zsh is sourced in .zshrc
-        os.system(f"{sys.executable} -m password_manager.post_install")
 
 setup(
     name='password_manager',
@@ -20,17 +10,13 @@ setup(
         'cryptography',
         'python-pam',
         'pathlib',
-        'pyobjc',
-        # Add other dependencies if needed
+        'pyobjc'
     ],
     entry_points='''
         [console_scripts]
         vault=password_manager.cli:vault
     ''',
-    package_data={
-        '': ['*.zsh'],
-    },
-    cmdclass={
-        'install': PostInstallCommand,
-    },
+    data_files=[
+        ('~/.password_manager_completion', ['vault_completion.zsh']),
+    ]
 )
