@@ -9,14 +9,17 @@ setup(
         'click',
         'cryptography',
         'python-pam',
-        'pathlib',
-        'pyobjc'
+        'schedule',
+        'pyobjc-framework-Cocoa'  # Ensure you have the correct pyobjc package
     ],
     entry_points='''
         [console_scripts]
         vault=password_manager.cli:vault
     ''',
     data_files=[
-        ('~/.password_manager_completion', ['vault_completion.zsh']),
-    ]
+        ('share/zsh/site-functions', ['vault_completion.zsh']),
+    ],
+    package_data={
+        '': ['*.zsh'],
+    },
 )

@@ -8,16 +8,17 @@ import time
 import uuid
 import ctypes
 from ctypes import CDLL, c_void_p, c_long
-import click_completion
-from click_completion import core
+import threading
+import logging
+
+# Setup logging to redirect to a file
+logging.basicConfig(filename='vault.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.info("Logging initialized")  # Initial log message to verify logging setup
 
 if os.uname().sysname == "Darwin":
     import objc
     from Foundation import NSObject
     from LocalAuthentication import LAContext, LAPolicyDeviceOwnerAuthenticationWithBiometrics
-
-# Initialize click completion
-click_completion.init()
 
 libdispatch = CDLL('/usr/lib/system/libdispatch.dylib')
 libdispatch.dispatch_semaphore_create.argtypes = [c_long]
@@ -47,6 +48,7 @@ def authenticate_fingerprint_mac():
             if _success:
                 authenticated = True
             else:
+                click.echo(f"Fingerprint authentication error: {_error}")
                 authenticated = False
             libdispatch.dispatch_semaphore_signal(semaphore)
 
@@ -82,19 +84,19 @@ def reencrypt_passwords(old_cipher, new_cipher):
     for file_path in DATA_DIR.glob('*.pass'):
         with open(file_path, 'r') as f:
             lines = f.read().splitlines()
-            if len(lines) < 4:
+            if len(lines) < 3:
                 click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
                 continue
-            description = lines[1]
-            user_id = lines[2]
-            encrypted_password = lines[3].encode()
+            description = lines[0]
+            user_id = lines[1]
+            encrypted_password = lines[2].encode()
             try:
                 decrypted_password = old_cipher.decrypt(encrypted_password)
             except InvalidToken:
-                click.echo(f"Failed to decrypt {file_path.stem} with the old key. Skipping.")
+                click.echo(f"Failed to decrypt {file_path.stem}. Skipping.")
                 continue
             new_encrypted_password = new_cipher.encrypt(decrypted_password)
-            password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
+            password_entry = f"{description}\n{user_id}\n{new_encrypted_password.decode()}"
             with open(file_path, 'w') as f:
                 f.write(password_entry)
 
@@ -320,22 +322,39 @@ def update(vault_id):
 
 @vault.command(name="install-completion")
 def install_completion():
-    """Install or update the shell completion script."""
-    shell, path = core.install(shell='zsh', prog_name='vault')
-    click.echo(f'{shell} completion installed in {path}')
     click.echo('To activate completion for this session, source the script:')
     click.echo('source ~/.password_manager_completion/vault_completion.zsh')
 
 @vault.command(name="rotate-key")
 def rotate_key():
+    logging.info("Running rotate-key command")  # Log rotation execution
     ensure_authenticated()
+    old_key = cipher._signing_key
     new_key = generate_new_key()
     old_cipher = cipher
     new_cipher = Fernet(new_key)
     click.echo("Re-encrypting all passwords with the new key...")
-    reencrypt_passwords(old_cipher, new_cipher)
+    for file_path in DATA_DIR.glob('*.pass'):
+        with open(file_path, 'r') as f:
+            lines = f.read().splitlines()
+            if len(lines) < 4:
+                click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
+                continue
+            description = lines[1]
+            user_id = lines[2]
+            encrypted_password = lines[3].encode()
+            try:
+                decrypted_password = old_cipher.decrypt(encrypted_password)
+            except InvalidToken:
+                click.echo(f"Failed to decrypt {file_path.stem} with the old key. Skipping.")
+                continue
+            new_encrypted_password = new_cipher.encrypt(decrypted_password)
+            password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
+            with open(file_path, 'w') as f:
+                f.write(password_entry)
     store_new_key(new_key)
     click.echo("Key rotation completed successfully.")
+    logging.info("Key rotation completed successfully")  # Log successful rotation
 
 @vault.command(name="delete-all")
 def delete_all():
@@ -345,7 +364,28 @@ def delete_all():
         os.remove(file_path)
     click.echo("All password entries have been deleted.")
 
+# Background task function
+def run_periodic_task():
+    while True:
+        print("Running periodic task")
+        time.sleep(10)  # 30 minutes interval
+        print("fstill going")
+        logging.info("Starting rotate-key command from periodic task")  # Log before rotation
+        click.get_current_context().invoke(rotate_key)
+        logging.info("Completed rotate-key command from periodic task")  # Log after rotation
+       
+
+# Start the periodic task in a separate thread
+def start_periodic_task():
+    logging.info("Starting periodic task thread")
+    task_thread = threading.Thread(target=run_periodic_task, daemon=True)
+    task_thread.start()
+
 if __name__ == "__main__":
+    logging.info("Periodic task initialization started")
+    print("starting periodic task")
+    start_periodic_task()
+    logging.info("Periodic task started")  # Log message to verify task starts
     vault()
 
 def get_password_file_path(domain):
