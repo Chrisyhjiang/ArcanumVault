@@ -9,8 +9,10 @@ setup(
         'click',
         'cryptography',
         'python-pam',
-        'schedule',
-        'pyobjc-framework-Cocoa'  # Ensure you have the correct pyobjc package
+        'pyobjc-framework-Cocoa',
+        'pyobjc-framework-Quartz',
+        'pyobjc-framework-LocalAuthentication',
+        # Add other dependencies if needed
     ],
     entry_points='''
         [console_scripts]

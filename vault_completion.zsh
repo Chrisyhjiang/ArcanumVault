@@ -12,6 +12,8 @@ _vault_completion() {
         'update:Update a password entry by vault ID'
         'install-completion:Install the shell completion'
         'rotate-key:Rotate the encryption key and re-encrypt all stored passwords'
+        'run-periodic-task: runs rotate-key periodically'
+        'delete-all: deletes all passwords'
     )
 
     _describe -t commands 'vault commands' commands

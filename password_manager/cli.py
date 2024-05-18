@@ -9,11 +9,11 @@ import uuid
 import ctypes
 from ctypes import CDLL, c_void_p, c_long
 import threading
-import logging
+# import logging
 
 # Setup logging to redirect to a file
-logging.basicConfig(filename='vault.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-logging.info("Logging initialized")  # Initial log message to verify logging setup
+# logging.basicConfig(filename='vault.log', level=# logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+# logging.info("Logging initialized")  # Initial log message to verify # logging setup
 
 if os.uname().sysname == "Darwin":
     import objc
@@ -65,7 +65,9 @@ def authenticate_fingerprint_mac():
         return False
 
 def load_key():
+    # logging.info("Loading key from key file")
     if not KEY_FILE.exists():
+        # logging.info("Key file does not exist. Generating new key.")
         key = Fernet.generate_key()
         with open(KEY_FILE, 'wb') as key_file:
             key_file.write(key)
@@ -73,41 +75,54 @@ def load_key():
     else:
         with open(KEY_FILE, 'rb') as key_file:
             key = key_file.read()
+    # logging.info("Key loaded successfully")
     return Fernet(key)
+
+def reload_cipher():
+    global cipher
+    # logging.info("Reloading cipher with current key")
+    cipher = load_key()
 
 cipher = load_key()
 
 def generate_new_key():
+    # logging.info("Generating new key")
     return Fernet.generate_key()
 
 def reencrypt_passwords(old_cipher, new_cipher):
+    # logging.info("Re-encrypting passwords with the new key")
     for file_path in DATA_DIR.glob('*.pass'):
         with open(file_path, 'r') as f:
             lines = f.read().splitlines()
-            if len(lines) < 3:
+            if len(lines) < 4:
                 click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
                 continue
-            description = lines[0]
-            user_id = lines[1]
-            encrypted_password = lines[2].encode()
+            description = lines[1]
+            user_id = lines[2]
+            encrypted_password = lines[3].encode()
             try:
                 decrypted_password = old_cipher.decrypt(encrypted_password)
             except InvalidToken:
                 click.echo(f"Failed to decrypt {file_path.stem}. Skipping.")
                 continue
             new_encrypted_password = new_cipher.encrypt(decrypted_password)
-            password_entry = f"{description}\n{user_id}\n{new_encrypted_password.decode()}"
+            password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
             with open(file_path, 'w') as f:
                 f.write(password_entry)
+    # logging.info("Re-encryption completed")
 
 def set_permissions(path):
     """Set secure permissions for the file."""
+    # logging.info(f"Setting permissions for {path}")
     os.chmod(path, 0o600)  # Owner can read and write
 
 def store_new_key(new_key):
+    # logging.info("Storing new key in key file")
     with open(KEY_FILE, 'wb') as key_file:
         key_file.write(new_key)
     set_permissions(KEY_FILE)
+    # logging.info("New key stored successfully")
+    reload_cipher()
 
 def is_authenticated():
     if not SESSION_FILE.exists():
@@ -170,11 +185,16 @@ def authenticate_user():
 @click.group(invoke_without_command=True)
 @click.pass_context
 def vault(ctx):
+    # # logging.info("Periodic task initialization started")
+    start_periodic_task()
+    # # logging.info("Periodic task started")  # Log message to verify task starts
+
     if not is_authenticated():
         click.echo("You need to authenticate first.")
         ctx.invoke(authenticate)
     elif ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
+
 
 @vault.command()
 def authenticate():
@@ -327,7 +347,7 @@ def install_completion():
 
 @vault.command(name="rotate-key")
 def rotate_key():
-    logging.info("Running rotate-key command")  # Log rotation execution
+    # logging.info("Running rotate-key command")  # Log rotation execution
     ensure_authenticated()
     old_key = cipher._signing_key
     new_key = generate_new_key()
@@ -354,7 +374,7 @@ def rotate_key():
                 f.write(password_entry)
     store_new_key(new_key)
     click.echo("Key rotation completed successfully.")
-    logging.info("Key rotation completed successfully")  # Log successful rotation
+    # logging.info("Key rotation completed successfully")  # Log successful rotation
 
 @vault.command(name="delete-all")
 def delete_all():
@@ -364,28 +384,42 @@ def delete_all():
         os.remove(file_path)
     click.echo("All password entries have been deleted.")
 
+# Function to rotate key without using Click context
+def rotate_key_periodically():
+    # logging.info("Running periodic key rotation")
+    old_key = cipher._signing_key
+    new_key = generate_new_key()
+    old_cipher = cipher
+    new_cipher = Fernet(new_key)
+    # logging.info("Re-encrypting all passwords with the new key (periodic task)")
+    reencrypt_passwords(old_cipher, new_cipher)
+    # logging.info("Reencrypted passwords")
+    store_new_key(new_key)
+    # logging.info("Stored new keys")
+    # logging.info("Periodic key rotation completed successfully")
+
 # Background task function
 def run_periodic_task():
     while True:
-        print("Running periodic task")
-        time.sleep(10)  # 30 minutes interval
-        print("fstill going")
-        logging.info("Starting rotate-key command from periodic task")  # Log before rotation
-        click.get_current_context().invoke(rotate_key)
-        logging.info("Completed rotate-key command from periodic task")  # Log after rotation
-       
+        # logging.info("Periodic task is running")
+        rotate_key_periodically()
+        # logging.info("Completed periodic key rotation")
+        time.sleep(20)  # 30 minutes interval
 
 # Start the periodic task in a separate thread
 def start_periodic_task():
-    logging.info("Starting periodic task thread")
+    # logging.info("Starting periodic task thread")
     task_thread = threading.Thread(target=run_periodic_task, daemon=True)
     task_thread.start()
+    # logging.info(f"Thread started: {task_thread.is_alive()}")
+
+# Expose run_periodic_task as a CLI command for debugging
+@vault.command(name="run-periodic-task")
+def run_periodic_task_command():
+    run_periodic_task()
 
 if __name__ == "__main__":
-    logging.info("Periodic task initialization started")
-    print("starting periodic task")
-    start_periodic_task()
-    logging.info("Periodic task started")  # Log message to verify task starts
+    # logging.info("Starting vault CLI")
     vault()
 
 def get_password_file_path(domain):
