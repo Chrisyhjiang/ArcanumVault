@@ -1,0 +1,18 @@
+2024-05-19 15:09:51,942 - INFO - Logging initialized
+2024-05-19 15:09:52,003 - INFO - Loaded key: b'z488ldhYYg6SSJC57lqRMoCDWKFjld5lVQxIa5IA-oA='
+2024-05-19 15:09:52,006 - INFO - Running periodic key rotation
+2024-05-19 15:09:52,006 - INFO - Periodic task thread started: True
+2024-05-19 15:09:54,971 - INFO - Logging initialized
+2024-05-19 15:09:55,021 - INFO - Loaded key: b'z488ldhYYg6SSJC57lqRMoCDWKFjld5lVQxIa5IA-oA='
+2024-05-19 15:09:55,022 - INFO - Running periodic key rotation
+2024-05-19 15:09:55,022 - INFO - Periodic task thread started: True
+2024-05-19 15:09:55,023 - INFO - Loaded key: b'z488ldhYYg6SSJC57lqRMoCDWKFjld5lVQxIa5IA-oA='
+2024-05-19 15:09:55,023 - INFO - Cipher reloaded with key: b'\xcf\x8f<\x95\xd8Xb\x0e\x92H\x90\xb9\xeeZ\x912'
+2024-05-19 15:09:55,054 - INFO - Re-encryption completed
+2024-05-19 15:09:55,054 - INFO - Loaded key: b'DTH59TUKrON1RYkbQBIiqJksZk58iHJ_0Ei03sMGYHA='
+2024-05-19 15:09:55,054 - INFO - Cipher reloaded with key: b'\r1\xf9\xf55\n\xac\xe3uE\x89\x1b@\x12"\xa8'
+2024-05-19 15:09:55,054 - INFO - New key stored successfully
+2024-05-19 15:09:55,054 - INFO - Completed periodic key rotation
+2024-05-19 15:09:55,055 - INFO - Loaded key: b'HOF4si4ZubcYpW8H7mT7Dppjn09r85skZEd76f8yJUc='
+2024-05-19 15:09:55,055 - INFO - Cipher reloaded with key: b'\x1c\xe1x\xb2.\x19\xb9\xb7\x18\xa5o\x07\xeed\xfb\x0e'
+2024-05-19 15:09:55,055 - INFO - New key stored successfully

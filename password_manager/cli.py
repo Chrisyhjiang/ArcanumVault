@@ -407,6 +407,37 @@ def delete_all():
             os.remove(file_path)
         click.echo("All password entries have been deleted.")
 
+@vault.command()
+@click.argument('description')
+def search(description):
+    """Search for passwords by description."""
+    ensure_authenticated()
+    results = []
+    with key_lock:
+        for file_path in DATA_DIR.glob('*.pass'):
+            with open(file_path, 'r') as f:
+                lines = f.read().splitlines()
+                if len(lines) < 4:
+                    click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
+                    continue
+                vault_id = lines[0]
+                desc = lines[1]
+                user_id = lines[2]
+                encrypted_password = lines[3].encode()
+                if description.lower() in desc.lower():
+                    try:
+                        password = cipher.decrypt(encrypted_password).decode()
+                        results.append((file_path.stem, vault_id, desc, user_id, password))
+                    except InvalidToken:
+                        click.echo(f"Failed to decrypt password for {file_path.stem}. Skipping.")
+                        continue
+    if results:
+        for domain, vault_id, desc, user_id, password in results:
+            click.echo(f"\nDomain: {domain}\nVault ID: {vault_id}\nDescription: {desc}\nUser ID: {user_id}\nPassword: {password}\n")
+    else:
+        click.echo("No matching descriptions found.")
+
+
 if __name__ == "__main__":
     start_periodic_task()
     vault()

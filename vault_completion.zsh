@@ -14,6 +14,7 @@ _vault_completion() {
         'rotate-key:Rotate the encryption key and re-encrypt all stored passwords'
         'run-periodic-task: runs rotate-key periodically'
         'delete-all: deletes all passwords'
+        'search: returns all relevant entries based on your input description'
     )
 
     _describe -t commands 'vault commands' commands
