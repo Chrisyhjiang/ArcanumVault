@@ -9,6 +9,11 @@ import uuid
 import ctypes
 from ctypes import CDLL, c_void_p, c_long
 import threading
+import logging
+
+# Setup logging to redirect to a file
+logging.basicConfig(filename='vault.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.info("Logging initialized")  # Initial log message to verify logging setup
 
 # Setup directories and files
 DATA_DIR = Path.home() / ".password_manager" / "data"
@@ -49,11 +54,13 @@ def load_key():
     else:
         with open(KEY_FILE, 'rb') as key_file:
             key = key_file.read()
+    logging.info(f"Loaded key: {key}")
     return Fernet(key)
 
 def reload_cipher():
     global cipher
     cipher = load_key()
+    logging.info(f"Cipher reloaded with key: {cipher._signing_key}")
 
 cipher = load_key()
 
@@ -79,28 +86,33 @@ def reencrypt_passwords(old_cipher, new_cipher):
             password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
             with open(file_path, 'w') as f:
                 f.write(password_entry)
-
-def set_permissions(path):
-    """Set secure permissions for the file."""
-    os.chmod(path, 0o600)  # Owner can read and write
+    logging.info("Re-encryption completed")
 
 def store_new_key(new_key):
     with open(KEY_FILE, 'wb') as key_file:
         key_file.write(new_key)
     set_permissions(KEY_FILE)
     reload_cipher()
+    logging.info("New key stored successfully")
 
 def rotate_key_periodically():
     while True:
         with key_lock:
-            rotate_key()
-        time.sleep(1800)  # Sleep for 30 minutes
+            logging.info("Running periodic key rotation")
+            old_key = cipher._signing_key
+            new_key = generate_new_key()
+            old_cipher = cipher
+            new_cipher = Fernet(new_key)
+            reencrypt_passwords(old_cipher, new_cipher)
+            store_new_key(new_key)
+            logging.info("Completed periodic key rotation")
+        time.sleep(10)  # Adjust the sleep duration here (e.g., 1800 seconds for 30 minutes)
 
 def start_periodic_task():
     if not hasattr(start_periodic_task, 'task_thread'):
         start_periodic_task.task_thread = threading.Thread(target=rotate_key_periodically, daemon=True)
         start_periodic_task.task_thread.start()
-        click.echo(f"Periodic task thread started: {start_periodic_task.task_thread.is_alive()}")
+        logging.info(f"Periodic task thread started: {start_periodic_task.task_thread.is_alive()}")
 
 def authenticate_fingerprint_mac():
     """Authenticate the user using fingerprint on macOS."""
@@ -199,6 +211,7 @@ def vault(ctx):
         ctx.invoke(authenticate)
     elif ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
+    start_periodic_task()
 
 @vault.command()
 def authenticate():
@@ -207,49 +220,30 @@ def authenticate():
 @vault.command()
 def insert():
     ensure_authenticated()
-    vault_id = str(uuid.uuid4())
-    domain = click.prompt('Domain Name')
-    description = click.prompt('Description')
-    user_id = click.prompt('User ID')
-    password = click.prompt('Password', hide_input=True, confirmation_prompt=True)
-    encrypted_password = cipher.encrypt(password.encode())
-    password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password.decode()}"
-    with open(get_password_file_path(domain), 'w') as f:
-        f.write(password_entry)
-    click.echo(f"Password for {domain} inserted with description, User ID, and vaultID {vault_id}.")
+    with key_lock:
+        vault_id = str(uuid.uuid4())
+        domain = click.prompt('Domain Name')
+        description = click.prompt('Description')
+        user_id = click.prompt('User ID')
+        password = click.prompt('Password', hide_input=True, confirmation_prompt=True)
+        encrypted_password = cipher.encrypt(password.encode())
+        password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password.decode()}"
+        with open(get_password_file_path(domain), 'w') as f:
+            f.write(password_entry)
+        click.echo(f"Password for {domain} inserted with description, User ID, and vaultID {vault_id}.")
 
 @vault.command()
 @click.argument('domain', required=False)
 def show(domain):
     ensure_authenticated()
-    if domain:
-        try:
-            with open(get_password_file_path(domain), 'r') as f:
-                lines = f.read().splitlines()
-                if len(lines) < 4:
-                    click.echo(f"Invalid password file format for {domain}. File content: {lines}")
-                    return
-                vault_id = lines[0]
-                description = lines[1]
-                user_id = lines[2]
-                encrypted_password = lines[3].encode()
-                try:
-                    password = cipher.decrypt(encrypted_password).decode()
-                except InvalidToken:
-                    click.echo(f"Failed to decrypt password for {domain}.")
-                    return
-            click.echo(f"Vault ID: {vault_id}\nDescription: {description}\nUser ID: {user_id}\nPassword for {domain}: {password}")
-        except FileNotFoundError:
-            click.echo(f"No password found for {domain}")
-    else:
-        for file_path in DATA_DIR.glob('*.pass'):
-            domain_name = file_path.stem
+    with key_lock:
+        if domain:
             try:
-                with open(file_path, 'r') as f:
+                with open(get_password_file_path(domain), 'r') as f:
                     lines = f.read().splitlines()
                     if len(lines) < 4:
-                        click.echo(f"Invalid password file format for {domain_name}. File content: {lines}")
-                        continue
+                        click.echo(f"Invalid password file format for {domain}. File content: {lines}")
+                        return
                     vault_id = lines[0]
                     description = lines[1]
                     user_id = lines[2]
@@ -257,92 +251,117 @@ def show(domain):
                     try:
                         password = cipher.decrypt(encrypted_password).decode()
                     except InvalidToken:
-                        click.echo(f"Failed to decrypt password for {domain_name}.")
-                        continue
-                click.echo(f"\nDomain: {domain_name}\nVault ID: {vault_id}\nDescription: {description}\nUser ID: {user_id}\nPassword: {password}\n")
+                        click.echo(f"Failed to decrypt password for {domain}.")
+                        return
+                click.echo(f"Vault ID: {vault_id}\nDescription: {description}\nUser ID: {user_id}\nPassword for {domain}: {password}")
             except FileNotFoundError:
-                click.echo(f"No password found for {domain_name}")
+                click.echo(f"No password found for {domain}")
+        else:
+            for file_path in DATA_DIR.glob('*.pass'):
+                domain_name = file_path.stem
+                try:
+                    with open(file_path, 'r') as f:
+                        lines = f.read().splitlines()
+                        if len(lines) < 4:
+                            click.echo(f"Invalid password file format for {domain_name}. File content: {lines}")
+                            continue
+                        vault_id = lines[0]
+                        description = lines[1]
+                        user_id = lines[2]
+                        encrypted_password = lines[3].encode()
+                        try:
+                            password = cipher.decrypt(encrypted_password).decode()
+                        except InvalidToken:
+                            click.echo(f"Failed to decrypt password for {domain_name}.")
+                            continue
+                    click.echo(f"\nDomain: {domain_name}\nVault ID: {vault_id}\nDescription: {description}\nUser ID: {user_id}\nPassword: {password}\n")
+                except FileNotFoundError:
+                    click.echo(f"No password found for {domain_name}")
 
 @vault.command()
 @click.argument('vault_id')
 def remove(vault_id):
     ensure_authenticated()
-    for file_path in DATA_DIR.glob('*.pass'):
-        with open(file_path, 'r') as f:
-            lines = f.read().splitlines()
-        if len(lines) < 4:
-            continue
-        existing_vault_id = lines[0]
-        if existing_vault_id == vault_id:
-            os.remove(file_path)
-            click.echo(f"Password with vault ID {vault_id} removed.")
-            break
-    else:
-        click.echo(f"No entry found with vault ID {vault_id}")
+    with key_lock:
+        for file_path in DATA_DIR.glob('*.pass'):
+            with open(file_path, 'r') as f:
+                lines = f.read().splitlines()
+            if len(lines) < 4:
+                continue
+            existing_vault_id = lines[0]
+            if existing_vault_id == vault_id:
+                os.remove(file_path)
+                click.echo(f"Password with vault ID {vault_id} removed.")
+                break
+        else:
+            click.echo(f"No entry found with vault ID {vault_id}")
 
 @vault.command()
 @click.argument('domain')
 @click.argument('length', type=int)
 def generate(domain, length):
     ensure_authenticated()
-    import random
-    import string
-    password = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=length))
-    encrypted_password = cipher.encrypt(password.encode())
-    vault_id = str(uuid.uuid4())
-    description = click.prompt('Description')
-    user_id = click.prompt('User ID')
-    password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password.decode()}"
-    with open(get_password_file_path(domain), 'w') as f:
-        f.write(password_entry)
-    click.echo(f"Generated password for {domain} with description, User ID, and vaultID {vault_id}: {password}")
+    with key_lock:
+        import random
+        import string
+        password = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=length))
+        encrypted_password = cipher.encrypt(password.encode())
+        vault_id = str(uuid.uuid4())
+        description = click.prompt('Description')
+        user_id = click.prompt('User ID')
+        password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password.decode()}"
+        with open(get_password_file_path(domain), 'w') as f:
+            f.write(password_entry)
+        click.echo(f"Generated password for {domain} with description, User ID, and vaultID {vault_id}: {password}")
 
 @vault.command()
 def reformat():
     ensure_authenticated()
-    for file_path in DATA_DIR.glob('*.pass'):
-        domain_name = file_path.stem
-        with open(file_path, 'r') as f:
-            lines = f.read().splitlines()
-        if len(lines) == 3:
-            description = lines[0]
-            user_id = lines[1]
-            encrypted_password = lines[2]
-            vault_id = str(uuid.uuid4())
-            password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password}"
-            with open(file_path, 'w') as f:
-                f.write(password_entry)
-            click.echo(f"Reformatted {domain_name} with vault ID {vault_id}.")
-        elif len(lines) < 3:
-            click.echo(f"Skipping {domain_name}, invalid format.")
+    with key_lock:
+        for file_path in DATA_DIR.glob('*.pass'):
+            domain_name = file_path.stem
+            with open(file_path, 'r') as f:
+                lines = f.read().splitlines()
+            if len(lines) == 3:
+                description = lines[0]
+                user_id = lines[1]
+                encrypted_password = lines[2]
+                vault_id = str(uuid.uuid4())
+                password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password}"
+                with open(file_path, 'w') as f:
+                    f.write(password_entry)
+                click.echo(f"Reformatted {domain_name} with vault ID {vault_id}.")
+            elif len(lines) < 3:
+                click.echo(f"Skipping {domain_name}, invalid format.")
 
 @vault.command()
 @click.argument('vault_id')
 def update(vault_id):
     ensure_authenticated()
-    for file_path in DATA_DIR.glob('*.pass'):
-        with open(file_path, 'r') as f:
-            lines = f.read().splitlines()
-        if len(lines) < 4:
-            continue
-        existing_vault_id = lines[0]
-        if existing_vault_id == vault_id:
-            description = lines[1]
-            user_id = lines[2]
-            encrypted_password = lines[3]
-            break
-    else:
-        click.echo(f"No entry found with vault ID {vault_id}")
-        return
+    with key_lock:
+        for file_path in DATA_DIR.glob('*.pass'):
+            with open(file_path, 'r') as f:
+                lines = f.read().splitlines()
+            if len(lines) < 4:
+                continue
+            existing_vault_id = lines[0]
+            if existing_vault_id == vault_id:
+                description = lines[1]
+                user_id = lines[2]
+                encrypted_password = lines[3]
+                break
+        else:
+            click.echo(f"No entry found with vault ID {vault_id}")
+            return
 
-    new_description = click.prompt('New Description', default=description)
-    new_user_id = click.prompt('New User ID', default=user_id)
-    new_password = click.prompt('New Password', hide_input=True, confirmation_prompt=True)
-    encrypted_password = cipher.encrypt(new_password.encode()).decode()
-    password_entry = f"{vault_id}\n{new_description}\n{new_user_id}\n{encrypted_password}"
-    with open(file_path, 'w') as f:
-        f.write(password_entry)
-    click.echo(f"Updated entry with vault ID {vault_id}.")
+        new_description = click.prompt('New Description', default=description)
+        new_user_id = click.prompt('New User ID', default=user_id)
+        new_password = click.prompt('New Password', hide_input=True, confirmation_prompt=True)
+        encrypted_password = cipher.encrypt(new_password.encode()).decode()
+        password_entry = f"{vault_id}\n{new_description}\n{new_user_id}\n{encrypted_password}"
+        with open(file_path, 'w') as f:
+            f.write(password_entry)
+        click.echo(f"Updated entry with vault ID {vault_id}.")
 
 @vault.command(name="install-completion")
 def install_completion():
@@ -352,39 +371,41 @@ def install_completion():
 @vault.command(name="rotate-key")
 def rotate_key():
     ensure_authenticated()
-    old_key = cipher._signing_key
-    new_key = generate_new_key()
-    old_cipher = cipher
-    new_cipher = Fernet(new_key)
-    click.echo("Re-encrypting all passwords with the new key...")
-    for file_path in DATA_DIR.glob('*.pass'):
-        with open(file_path, 'r') as f:
-            lines = f.read().splitlines()
-            if len(lines) < 4:
-                click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
-                continue
-            description = lines[1]
-            user_id = lines[2]
-            encrypted_password = lines[3].encode()
-            try:
-                decrypted_password = old_cipher.decrypt(encrypted_password)
-            except InvalidToken:
-                click.echo(f"Failed to decrypt {file_path.stem} with the old key. Skipping.")
-                continue
-            new_encrypted_password = new_cipher.encrypt(decrypted_password)
-            password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
-            with open(file_path, 'w') as f:
-                f.write(password_entry)
-    store_new_key(new_key)
-    click.echo("Key rotation completed successfully.")
+    with key_lock:
+        old_key = cipher._signing_key
+        new_key = generate_new_key()
+        old_cipher = cipher
+        new_cipher = Fernet(new_key)
+        click.echo("Re-encrypting all passwords with the new key...")
+        for file_path in DATA_DIR.glob('*.pass'):
+            with open(file_path, 'r') as f:
+                lines = f.read().splitlines()
+                if len(lines) < 4:
+                    click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
+                    continue
+                description = lines[1]
+                user_id = lines[2]
+                encrypted_password = lines[3].encode()
+                try:
+                    decrypted_password = old_cipher.decrypt(encrypted_password)
+                except InvalidToken:
+                    click.echo(f"Failed to decrypt {file_path.stem} with the old key. Skipping.")
+                    continue
+                new_encrypted_password = new_cipher.encrypt(decrypted_password)
+                password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
+                with open(file_path, 'w') as f:
+                    f.write(password_entry)
+        store_new_key(new_key)
+        click.echo("Key rotation completed successfully.")
 
 @vault.command(name="delete-all")
 def delete_all():
     """Delete all password entries."""
     ensure_authenticated()
-    for file_path in DATA_DIR.glob('*.pass'):
-        os.remove(file_path)
-    click.echo("All password entries have been deleted.")
+    with key_lock:
+        for file_path in DATA_DIR.glob('*.pass'):
+            os.remove(file_path)
+        click.echo("All password entries have been deleted.")
 
 if __name__ == "__main__":
     start_periodic_task()
