@@ -28,6 +28,7 @@ SESSION_TIMEOUT = 3600  # Set session timeout to 3600 seconds (1 hour)
 
 cipher = None
 periodic_task_started = False
+system_password = None
 
 if os.uname().sysname == "Darwin":
     import objc
@@ -66,8 +67,9 @@ def derive_key(password: str) -> bytes:
     logging.debug(f"Derived key: {derived_key_b64}")
     return derived_key_b64
 
-def load_key(password: str):
-    key = derive_key(password)
+def load_key():
+    global cipher, system_password
+    key = derive_key(system_password)
     if not KEY_FILE.exists():
         with open(KEY_FILE, 'wb') as key_file:
             key_file.write(key)
@@ -82,15 +84,17 @@ def load_key(password: str):
                 logging.error("Derived key does not match stored key")
                 raise ValueError("Invalid password.")
     logging.info("Loaded key with KDF")
-    return Fernet(key)
+    cipher = Fernet(key)
 
-def reload_cipher(password: str):
-    global cipher
-    cipher = load_key(password)
+def reload_cipher():
+    global cipher, system_password
+    if system_password is None:
+        raise ValueError("System password is not set")
+    load_key()
     logging.info("Cipher reloaded with KDF")
 
-def generate_new_key(password: str):
-    key = derive_key(password)
+def generate_new_key():
+    key = derive_key(system_password)
     logging.debug(f"Generated new key: {key}")
     return key
 
@@ -115,38 +119,41 @@ def reencrypt_passwords(old_cipher, new_cipher):
                 f.write(password_entry)
     logging.info("Re-encryption completed")
 
-def store_new_key(password: str, new_key):
+def store_new_key(new_key):
+    global key_lock
     with key_lock:  # Ensure exclusive access
         with open(KEY_FILE, 'wb') as key_file:
             key_file.write(new_key)
         set_permissions(KEY_FILE)
         logging.debug(f"Stored new key: {new_key}")
         logging.info("New key stored successfully with KDF")
-        reload_cipher(password)
+        reload_cipher()
 
-def rotate_key_periodically(password: str):
+def rotate_key_periodically():
+    global system_password, cipher
     while True:
         with key_lock:  # Ensure exclusive access
             logging.info("Running periodic key rotation")
             old_key = cipher._signing_key
-            new_key = generate_new_key(password)
+            new_key = generate_new_key()
             old_cipher = cipher
             new_cipher = Fernet(new_key)
             reencrypt_passwords(old_cipher, new_cipher)
-            store_new_key(password, new_key)
+            store_new_key(new_key)
             logging.info("Completed periodic key rotation")
         time.sleep(1800)  # Rotate key every 30 minutes (1800 seconds)
 
-def start_periodic_task(password: str):
+def start_periodic_task():
     global periodic_task_started
     if not hasattr(start_periodic_task, 'task_thread'):
-        start_periodic_task.task_thread = threading.Thread(target=rotate_key_periodically, args=(password,), daemon=True)
+        start_periodic_task.task_thread = threading.Thread(target=rotate_key_periodically, daemon=True)
         start_periodic_task.task_thread.start()
         logging.info(f"Periodic task thread started: {start_periodic_task.task_thread.is_alive()}")
         periodic_task_started = True
 
 def authenticate_fingerprint_mac():
     """Authenticate the user using fingerprint on macOS."""
+    global system_password
     context = LAContext.alloc().init()
     success, error = context.canEvaluatePolicy_error_(LAPolicyDeviceOwnerAuthenticationWithBiometrics, None)
     
@@ -170,7 +177,14 @@ def authenticate_fingerprint_mac():
             callback
         )
         libdispatch.dispatch_semaphore_wait(semaphore, c_long(-1))
-        return authenticated
+        
+        if authenticated:
+            # Prompt for system password after successful fingerprint authentication
+            system_password = click.prompt('System Password', hide_input=True)
+            load_key()
+            return authenticated
+        else:
+            return authenticated
     else:
         click.echo(f"Fingerprint authentication not available: {error}")
         return False
@@ -185,20 +199,21 @@ def is_authenticated():
         return False
     return True
 
-def ensure_authenticated(password: str):
+def ensure_authenticated():
     if not is_authenticated():
         click.echo("You need to authenticate first. Run 'vault authenticate' to authenticate.")
         exit(1)
     else:
-        refresh_session(password)
+        refresh_session()
 
-def refresh_session(password: str):
+def refresh_session():
+    global system_password
     with open(SESSION_FILE, 'w') as f:
         f.write(str(int(time.time())))
-    reload_cipher(password)
+    reload_cipher()
 
 def authenticate_user():
-    global cipher, periodic_task_started
+    global cipher, periodic_task_started, system_password
     pam_auth = pam.pam()
     
     try:
@@ -218,7 +233,8 @@ def authenticate_user():
             exit(1)
         else:
             click.echo("Authentication succeeded.")
-            cipher = load_key(password)
+            system_password = password
+            load_key()
             with open(SESSION_FILE, 'w') as f:
                 f.write(str(int(time.time())))
     elif choice == 'f':
@@ -229,8 +245,7 @@ def authenticate_user():
                 exit(1)
             else:
                 click.echo("Fingerprint authentication succeeded.")
-                password = click.prompt('System Password', hide_input=True)
-                cipher = load_key(password)
+                load_key()
                 with open(SESSION_FILE, 'w') as f:
                     f.write(str(int(time.time())))
         else:
@@ -244,7 +259,7 @@ def authenticate_user():
 
     # Start periodic task after successful authentication if not already started
     if not periodic_task_started:
-        start_periodic_task(password)
+        start_periodic_task()
         periodic_task_started = True
 
 @click.group(invoke_without_command=True)
@@ -262,8 +277,7 @@ def authenticate():
 
 @vault.command()
 def insert():
-    password = click.prompt('System Password', hide_input=True)
-    ensure_authenticated(password)
+    ensure_authenticated()
     with key_lock:
         vault_id = str(uuid.uuid4())
         domain = click.prompt('Domain Name')
@@ -279,8 +293,7 @@ def insert():
 @vault.command()
 @click.argument('domain', required=False)
 def show(domain):
-    password = click.prompt('System Password', hide_input=True)
-    ensure_authenticated(password)
+    ensure_authenticated()
     with key_lock:
         if domain:
             try:
@@ -326,8 +339,7 @@ def show(domain):
 @vault.command()
 @click.argument('vault_id')
 def remove(vault_id):
-    password = click.prompt('System Password', hide_input=True)
-    ensure_authenticated(password)
+    ensure_authenticated()
     with key_lock:
         for file_path in DATA_DIR.glob('*.pass'):
             with open(file_path, 'r') as f:
@@ -346,8 +358,7 @@ def remove(vault_id):
 @click.argument('domain')
 @click.argument('length', type=int)
 def generate(domain, length):
-    password = click.prompt('System Password', hide_input=True)
-    ensure_authenticated(password)
+    ensure_authenticated()
     with key_lock:
         import random
         import string
@@ -363,8 +374,7 @@ def generate(domain, length):
 
 @vault.command()
 def reformat():
-    password = click.prompt('System Password', hide_input=True)
-    ensure_authenticated(password)
+    ensure_authenticated()
     with key_lock:
         for file_path in DATA_DIR.glob('*.pass'):
             domain_name = file_path.stem
@@ -385,8 +395,7 @@ def reformat():
 @vault.command()
 @click.argument('vault_id')
 def update(vault_id):
-    password = click.prompt('System Password', hide_input=True)
-    ensure_authenticated(password)
+    ensure_authenticated()
     with key_lock:
         for file_path in DATA_DIR.glob('*.pass'):
             with open(file_path, 'r') as f:
@@ -419,11 +428,10 @@ def install_completion():
 
 @vault.command(name="rotate-key")
 def rotate_key():
-    password = click.prompt('System Password', hide_input=True)
-    ensure_authenticated(password)
+    ensure_authenticated()
     with key_lock:
         old_key = cipher._signing_key
-        new_key = generate_new_key(password)
+        new_key = generate_new_key()
         old_cipher = cipher
         new_cipher = Fernet(new_key)
         click.echo("Re-encrypting all passwords with the new key...")
@@ -445,14 +453,13 @@ def rotate_key():
                 password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
                 with open(file_path, 'w') as f:
                     f.write(password_entry)
-        store_new_key(password, new_key)
+        store_new_key(new_key)
         click.echo("Key rotation completed successfully.")
 
 @vault.command(name="delete-all")
 def delete_all():
     """Delete all password entries."""
-    password = click.prompt('System Password', hide_input=True)
-    ensure_authenticated(password)
+    ensure_authenticated()
     with key_lock:
         for file_path in DATA_DIR.glob('*.pass'):
             os.remove(file_path)
@@ -462,8 +469,7 @@ def delete_all():
 @click.argument('description')
 def search(description):
     """Search for passwords by description."""
-    password = click.prompt('System Password', hide_input=True)
-    ensure_authenticated(password)
+    ensure_authenticated()
     results = []
     with key_lock:
         for file_path in DATA_DIR.glob('*.pass'):
