@@ -44,7 +44,6 @@ libdispatch.dispatch_semaphore_signal.restype = c_long
 
 # Global lock for synchronizing key operations
 key_lock = threading.Lock()
-user_password = NONE
 
 def set_permissions(path):
     """Set secure permissions for the file."""
