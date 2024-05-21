@@ -2,6 +2,9 @@ import os
 import getpass
 import click
 from cryptography.fernet import Fernet, InvalidToken
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.backends import default_backend
 from pathlib import Path
 import pam
 import time
@@ -10,6 +13,7 @@ import ctypes
 from ctypes import CDLL, c_void_p, c_long
 import threading
 import logging
+import base64
 
 # Setup logging to redirect to a file
 logging.basicConfig(filename='vault.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -38,6 +42,10 @@ libdispatch.dispatch_semaphore_signal.restype = c_long
 # Global lock for synchronizing key operations
 key_lock = threading.Lock()
 
+authenticated_password = None
+cipher = None
+periodic_task_started = False  # Flag to ensure the periodic task starts only once
+
 def set_permissions(path):
     """Set secure permissions for the file."""
     os.chmod(path, 0o600)  # Owner can read and write
@@ -45,27 +53,60 @@ def set_permissions(path):
 def get_password_file_path(domain):
     return DATA_DIR / f"{domain}.pass"
 
+def generate_salt():
+    return os.urandom(16)
+
+def derive_key(password: str, salt: bytes):
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=100000,
+        backend=default_backend()
+    )
+    return base64.urlsafe_b64encode(kdf.derive(password.encode()))
+
+def derive_system_password(system_id: str) -> str:
+    # Use a fixed salt for deriving the system password
+    fixed_salt = b'some_fixed_salt_value'  # Ensure this value is consistent
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=fixed_salt,
+        iterations=100000,
+        backend=default_backend()
+    )
+    derived_key = kdf.derive(system_id.encode())
+    return base64.urlsafe_b64encode(derived_key).decode()
+
 def load_key():
+    global authenticated_password
+    if authenticated_password is None:
+        raise ValueError("Authenticated password is not set")
     if not KEY_FILE.exists():
-        key = Fernet.generate_key()
+        salt = generate_salt()
+        key = derive_key(authenticated_password, salt)
         with open(KEY_FILE, 'wb') as key_file:
-            key_file.write(key)
+            key_file.write(salt + key)
         set_permissions(KEY_FILE)
     else:
         with open(KEY_FILE, 'rb') as key_file:
-            key = key_file.read()
-    logging.info(f"Loaded key: {key}")
+            salt = key_file.read(16)
+            stored_key = key_file.read()
+            key = derive_key(authenticated_password, salt)
+            if key != stored_key:
+                raise ValueError("Invalid master password.")
+    logging.info("Loaded key with KDF")
     return Fernet(key)
 
 def reload_cipher():
     global cipher
     cipher = load_key()
-    logging.info(f"Cipher reloaded with key: {cipher._signing_key}")
-
-cipher = load_key()
+    logging.info("Cipher reloaded with KDF")
 
 def generate_new_key():
-    return Fernet.generate_key()
+    salt = generate_salt()
+    return derive_key(authenticated_password, salt), salt
 
 def reencrypt_passwords(old_cipher, new_cipher):
     for file_path in DATA_DIR.glob('*.pass'):
@@ -88,25 +129,25 @@ def reencrypt_passwords(old_cipher, new_cipher):
                 f.write(password_entry)
     logging.info("Re-encryption completed")
 
-def store_new_key(new_key):
+def store_new_key(new_key, salt):
     with open(KEY_FILE, 'wb') as key_file:
-        key_file.write(new_key)
+        key_file.write(salt + new_key)
     set_permissions(KEY_FILE)
     reload_cipher()
-    logging.info("New key stored successfully")
+    logging.info("New key stored successfully with KDF")
 
 def rotate_key_periodically():
     while True:
         with key_lock:
             logging.info("Running periodic key rotation")
             old_key = cipher._signing_key
-            new_key = generate_new_key()
+            new_key, salt = generate_new_key()
             old_cipher = cipher
             new_cipher = Fernet(new_key)
             reencrypt_passwords(old_cipher, new_cipher)
-            store_new_key(new_key)
+            store_new_key(new_key, salt)
             logging.info("Completed periodic key rotation")
-        time.sleep(10)  # Adjust the sleep duration here (e.g., 1800 seconds for 30 minutes)
+        time.sleep(1800)  # Rotate key every 30 minutes (1800 seconds)
 
 def start_periodic_task():
     if not hasattr(start_periodic_task, 'task_thread'):
@@ -167,6 +208,7 @@ def refresh_session():
     reload_cipher()
 
 def authenticate_user():
+    global cipher, authenticated_password, periodic_task_started
     pam_auth = pam.pam()
     
     try:
@@ -185,6 +227,8 @@ def authenticate_user():
             exit(1)
         else:
             click.echo("Authentication succeeded.")
+            authenticated_password = password
+            cipher = load_key()
             with open(SESSION_FILE, 'w') as f:
                 f.write(str(int(time.time())))
     elif choice == 'f':
@@ -194,6 +238,10 @@ def authenticate_user():
                 exit(1)
             else:
                 click.echo("Fingerprint authentication succeeded.")
+                # Derive a consistent password for fingerprint authentication
+                system_id = f"{username}-{os.uname().nodename}"
+                authenticated_password = derive_system_password(system_id)
+                cipher = load_key()
                 with open(SESSION_FILE, 'w') as f:
                     f.write(str(int(time.time())))
         else:
@@ -203,6 +251,11 @@ def authenticate_user():
         click.echo("Invalid choice.")
         exit(1)
 
+    # Start periodic task after successful authentication if not already started
+    if not periodic_task_started:
+        start_periodic_task()
+        periodic_task_started = True
+
 @click.group(invoke_without_command=True)
 @click.pass_context
 def vault(ctx):
@@ -211,7 +264,6 @@ def vault(ctx):
         ctx.invoke(authenticate)
     elif ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
-    start_periodic_task()
 
 @vault.command()
 def authenticate():
@@ -373,7 +425,7 @@ def rotate_key():
     ensure_authenticated()
     with key_lock:
         old_key = cipher._signing_key
-        new_key = generate_new_key()
+        new_key, salt = generate_new_key()
         old_cipher = cipher
         new_cipher = Fernet(new_key)
         click.echo("Re-encrypting all passwords with the new key...")
@@ -395,7 +447,7 @@ def rotate_key():
                 password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
                 with open(file_path, 'w') as f:
                     f.write(password_entry)
-        store_new_key(new_key)
+        store_new_key(new_key, salt)
         click.echo("Key rotation completed successfully.")
 
 @vault.command(name="delete-all")
@@ -437,7 +489,5 @@ def search(description):
     else:
         click.echo("No matching descriptions found.")
 
-
 if __name__ == "__main__":
-    start_periodic_task()
     vault()
