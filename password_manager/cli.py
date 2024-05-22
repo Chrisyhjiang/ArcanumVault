@@ -2,6 +2,9 @@ import os
 import getpass
 import click
 from cryptography.fernet import Fernet, InvalidToken
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.backends import default_backend
 from pathlib import Path
 import pam
 import time
@@ -10,6 +13,7 @@ import ctypes
 from ctypes import CDLL, c_void_p, c_long
 import threading
 import logging
+import base64
 
 # Setup logging to redirect to a file
 logging.basicConfig(filename='vault.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -19,8 +23,13 @@ logging.info("Logging initialized")  # Initial log message to verify logging set
 DATA_DIR = Path.home() / ".password_manager" / "data"
 KEY_FILE = Path.home() / ".password_manager" / "key.key"
 SESSION_FILE = Path.home() / ".password_manager" / ".session"
+PASSWORD_FILE = Path.home() / ".password_manager" / ".password"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 SESSION_TIMEOUT = 3600  # Set session timeout to 3600 seconds (1 hour)
+
+cipher = None
+periodic_task_started = False
+fixed_salt = base64.urlsafe_b64decode(b'YxLkCJl5Pl2kGqIdLCIHAg==')  # Replace with your generated fixed salt value
 
 if os.uname().sysname == "Darwin":
     import objc
@@ -45,27 +54,62 @@ def set_permissions(path):
 def get_password_file_path(domain):
     return DATA_DIR / f"{domain}.pass"
 
+def store_master_password(password: str):
+    with open(PASSWORD_FILE, 'wb') as f:
+        f.write(password.encode())
+    set_permissions(PASSWORD_FILE)
+
+def load_master_password():
+    if PASSWORD_FILE.exists():
+        with open(PASSWORD_FILE, 'rb') as f:
+            return f.read().decode()
+    return None
+
+def derive_key(password: str):
+    global fixed_salt  # Access the global variable
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=fixed_salt,
+        iterations=100000,
+        backend=default_backend()
+    )
+    derived_key = kdf.derive(password.encode())
+    derived_key_b64 = base64.urlsafe_b64encode(derived_key)
+    logging.debug(f"Derived key: {derived_key_b64}")
+    return derived_key_b64
+
 def load_key():
+    password = load_master_password()
+    if password is None:
+        raise ValueError("Master password is not set")
+    key = derive_key(password)
     if not KEY_FILE.exists():
-        key = Fernet.generate_key()
         with open(KEY_FILE, 'wb') as key_file:
             key_file.write(key)
         set_permissions(KEY_FILE)
+        logging.debug(f"Stored new key: {key}")
     else:
         with open(KEY_FILE, 'rb') as key_file:
-            key = key_file.read()
-    logging.info(f"Loaded key: {key}")
-    return Fernet(key)
+            stored_key = key_file.read()
+            logging.debug(f"Stored key: {stored_key}")
+            logging.debug(f"Derived key: {key}")
+            if key != stored_key:
+                logging.error("Derived key does not match stored key")
+                raise ValueError("Invalid password.")
+    logging.info("Loaded key with KDF")
+    global cipher
+    cipher = Fernet(key)
 
 def reload_cipher():
-    global cipher
-    cipher = load_key()
-    logging.info(f"Cipher reloaded with key: {cipher._signing_key}")
-
-cipher = load_key()
+    load_key()
+    logging.info("Cipher reloaded with KDF")
 
 def generate_new_key():
-    return Fernet.generate_key()
+    password = load_master_password()
+    if password is None:
+        raise ValueError("Master password is not set")
+    return derive_key(password)
 
 def reencrypt_passwords(old_cipher, new_cipher):
     for file_path in DATA_DIR.glob('*.pass'):
@@ -89,15 +133,19 @@ def reencrypt_passwords(old_cipher, new_cipher):
     logging.info("Re-encryption completed")
 
 def store_new_key(new_key):
-    with open(KEY_FILE, 'wb') as key_file:
-        key_file.write(new_key)
-    set_permissions(KEY_FILE)
-    reload_cipher()
-    logging.info("New key stored successfully")
+    global key_lock
+    with key_lock:  # Ensure exclusive access
+        with open(KEY_FILE, 'wb') as key_file:
+            key_file.write(new_key)
+        set_permissions(KEY_FILE)
+        logging.debug(f"Stored new key: {new_key}")
+        logging.info("New key stored successfully with KDF")
+        reload_cipher()
 
 def rotate_key_periodically():
+    global cipher
     while True:
-        with key_lock:
+        with key_lock:  # Ensure exclusive access
             logging.info("Running periodic key rotation")
             old_key = cipher._signing_key
             new_key = generate_new_key()
@@ -106,13 +154,15 @@ def rotate_key_periodically():
             reencrypt_passwords(old_cipher, new_cipher)
             store_new_key(new_key)
             logging.info("Completed periodic key rotation")
-        time.sleep(10)  # Adjust the sleep duration here (e.g., 1800 seconds for 30 minutes)
+        time.sleep(1800)  # Rotate key every 30 minutes (1800 seconds)
 
 def start_periodic_task():
+    global periodic_task_started
     if not hasattr(start_periodic_task, 'task_thread'):
         start_periodic_task.task_thread = threading.Thread(target=rotate_key_periodically, daemon=True)
         start_periodic_task.task_thread.start()
         logging.info(f"Periodic task thread started: {start_periodic_task.task_thread.is_alive()}")
+        periodic_task_started = True
 
 def authenticate_fingerprint_mac():
     """Authenticate the user using fingerprint on macOS."""
@@ -167,41 +217,50 @@ def refresh_session():
     reload_cipher()
 
 def authenticate_user():
+    global cipher, periodic_task_started
     pam_auth = pam.pam()
     
-    try:
-        username = os.getlogin()
-        if username == 'root':
-            username = getpass.getuser()
-    except Exception:
-        username = getpass.getuser()
-
     choice = click.prompt('Choose authentication method: [P]assword/[F]ingerprint', type=str).lower()
 
     if choice == 'p':
-        password = click.prompt('System Password', hide_input=True)
-        if not pam_auth.authenticate(username, password, service='login'):
+        master_password = click.prompt('Master Password', hide_input=True)
+        if not pam_auth.authenticate(getpass.getuser(), master_password, service='login'):
             click.echo("Authentication failed.")
+            logging.error("Password authentication failed")
             exit(1)
         else:
             click.echo("Authentication succeeded.")
+            store_master_password(master_password)
+            load_key()
             with open(SESSION_FILE, 'w') as f:
                 f.write(str(int(time.time())))
     elif choice == 'f':
         if os.uname().sysname == "Darwin":
             if not authenticate_fingerprint_mac():
                 click.echo("Fingerprint authentication failed.")
+                logging.error("Fingerprint authentication failed")
                 exit(1)
             else:
-                click.echo("Fingerprint authentication succeeded.")
+                master_password = load_master_password()
+                if master_password is None:
+                    master_password = click.prompt('Master Password', hide_input=True)
+                    store_master_password(master_password)
+                load_key()
                 with open(SESSION_FILE, 'w') as f:
                     f.write(str(int(time.time())))
         else:
             click.echo("Fingerprint authentication is not supported on this system.")
+            logging.error("Fingerprint authentication not supported")
             exit(1)
     else:
         click.echo("Invalid choice.")
+        logging.error("Invalid authentication choice")
         exit(1)
+
+    # Start periodic task after successful authentication if not already started
+    if not periodic_task_started:
+        start_periodic_task()
+        periodic_task_started = True
 
 @click.group(invoke_without_command=True)
 @click.pass_context
@@ -211,7 +270,6 @@ def vault(ctx):
         ctx.invoke(authenticate)
     elif ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
-    start_periodic_task()
 
 @vault.command()
 def authenticate():
@@ -225,8 +283,8 @@ def insert():
         domain = click.prompt('Domain Name')
         description = click.prompt('Description')
         user_id = click.prompt('User ID')
-        password = click.prompt('Password', hide_input=True, confirmation_prompt=True)
-        encrypted_password = cipher.encrypt(password.encode())
+        user_password = click.prompt('Password', hide_input=True, confirmation_prompt=True)
+        encrypted_password = cipher.encrypt(user_password.encode())
         password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password.decode()}"
         with open(get_password_file_path(domain), 'w') as f:
             f.write(password_entry)
@@ -249,11 +307,11 @@ def show(domain):
                     user_id = lines[2]
                     encrypted_password = lines[3].encode()
                     try:
-                        password = cipher.decrypt(encrypted_password).decode()
+                        user_password = cipher.decrypt(encrypted_password).decode()
                     except InvalidToken:
                         click.echo(f"Failed to decrypt password for {domain}.")
                         return
-                click.echo(f"Vault ID: {vault_id}\nDescription: {description}\nUser ID: {user_id}\nPassword for {domain}: {password}")
+                click.echo(f"Vault ID: {vault_id}\nDescription: {description}\nUser ID: {user_id}\nPassword for {domain}: {user_password}")
             except FileNotFoundError:
                 click.echo(f"No password found for {domain}")
         else:
@@ -270,11 +328,11 @@ def show(domain):
                         user_id = lines[2]
                         encrypted_password = lines[3].encode()
                         try:
-                            password = cipher.decrypt(encrypted_password).decode()
+                            user_password = cipher.decrypt(encrypted_password).decode()
                         except InvalidToken:
                             click.echo(f"Failed to decrypt password for {domain_name}.")
                             continue
-                    click.echo(f"\nDomain: {domain_name}\nVault ID: {vault_id}\nDescription: {description}\nUser ID: {user_id}\nPassword: {password}\n")
+                    click.echo(f"\nDomain: {domain_name}\nVault ID: {vault_id}\nDescription: {description}\nUser ID: {user_id}\nPassword: {user_password}\n")
                 except FileNotFoundError:
                     click.echo(f"No password found for {domain_name}")
 
@@ -304,15 +362,15 @@ def generate(domain, length):
     with key_lock:
         import random
         import string
-        password = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=length))
-        encrypted_password = cipher.encrypt(password.encode())
+        generated_password = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=length))
+        encrypted_password = cipher.encrypt(generated_password.encode())
         vault_id = str(uuid.uuid4())
         description = click.prompt('Description')
         user_id = click.prompt('User ID')
         password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password.decode()}"
         with open(get_password_file_path(domain), 'w') as f:
             f.write(password_entry)
-        click.echo(f"Generated password for {domain} with description, User ID, and vaultID {vault_id}: {password}")
+        click.echo(f"Generated password for {domain} with description, User ID, and vaultID {vault_id}: {generated_password}")
 
 @vault.command()
 def reformat():
@@ -437,7 +495,5 @@ def search(description):
     else:
         click.echo("No matching descriptions found.")
 
-
 if __name__ == "__main__":
-    start_periodic_task()
     vault()

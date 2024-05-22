@@ -8,11 +8,9 @@ _vault_completion() {
         'show:Show passwords'
         'remove:Remove a password by vault ID'
         'generate:Generate a random password'
-        'reformat:Reformat existing password files'
         'update:Update a password entry by vault ID'
         'install-completion:Install the shell completion'
         'rotate-key:Rotate the encryption key and re-encrypt all stored passwords'
-        'run-periodic-task: runs rotate-key periodically'
         'delete-all: deletes all passwords'
         'search: returns all relevant entries based on your input description'
     )
