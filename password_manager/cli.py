@@ -53,7 +53,8 @@ def set_permissions(path):
     os.chmod(path, 0o600)  # Owner can read and write
 
 def get_password_file_path(domain):
-    return get_current_directory() / f"{domain}.pass"
+    current_dir = load_current_directory()
+    return current_dir / f"{domain}.pass"
 
 def store_master_password(password: str):
     with open(PASSWORD_FILE, 'wb') as f:
@@ -112,8 +113,8 @@ def generate_new_key():
         raise ValueError("Master password is not set")
     return derive_key(password)
 
-def reencrypt_passwords_in_folder(folder, old_cipher, new_cipher):
-    for file_path in folder.glob('**/*.pass'):
+def reencrypt_passwords(old_cipher, new_cipher, dir_path):
+    for file_path in dir_path.glob('**/*.pass'):
         with open(file_path, 'r') as f:
             lines = f.read().splitlines()
             if len(lines) < 4:
@@ -131,7 +132,7 @@ def reencrypt_passwords_in_folder(folder, old_cipher, new_cipher):
             password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
             with open(file_path, 'w') as f:
                 f.write(password_entry)
-    logging.info("Re-encryption completed in folder: " + str(folder))
+    logging.info("Re-encryption completed")
 
 def store_new_key(new_key):
     global key_lock
@@ -142,18 +143,11 @@ def store_new_key(new_key):
         logging.debug(f"Stored new key: {new_key}")
         logging.info("New key stored successfully with KDF")
         reload_cipher()
-
 def rotate_key_periodically():
-    global cipher
     while True:
         with key_lock:  # Ensure exclusive access
             logging.info("Running periodic key rotation")
-            old_key = cipher._signing_key
-            new_key = generate_new_key()
-            old_cipher = cipher
-            new_cipher = Fernet(new_key)
-            reencrypt_passwords_in_folder(get_current_directory(), old_cipher, new_cipher)
-            store_new_key(new_key)
+            rotate_key_for_directory(DATA_DIR)
             logging.info("Completed periodic key rotation")
         time.sleep(1800)  # Rotate key every 30 minutes (1800 seconds)
 
@@ -263,16 +257,15 @@ def authenticate_user():
         start_periodic_task()
         periodic_task_started = True
 
-def get_current_directory():
+def load_current_directory():
     if CURRENT_DIRECTORY_FILE.exists():
         with open(CURRENT_DIRECTORY_FILE, 'r') as f:
             return Path(f.read().strip())
     return DATA_DIR
 
-def set_current_directory(directory):
+def save_current_directory(current_directory):
     with open(CURRENT_DIRECTORY_FILE, 'w') as f:
-        f.write(str(directory))
-    set_permissions(CURRENT_DIRECTORY_FILE)
+        f.write(str(current_directory))
 
 @click.group(invoke_without_command=True)
 @click.pass_context
@@ -302,18 +295,19 @@ def insert():
             f.write(password_entry)
         click.echo(f"Password for {domain} inserted with description, User ID, and vaultID {vault_id}.")
 
-@vault.command()
-@click.argument('domain', required=False)
-def show(domain):
-    ensure_authenticated()
-    with key_lock:
-        if domain:
+def show_passwords(directory, indent_level=0):
+    """Recursively show passwords and folders."""
+    for file_path in directory.iterdir():
+        if file_path.is_dir():
+            click.echo(f"{' ' * (indent_level * 2)}{file_path.name}/")
+            show_passwords(file_path, indent_level + 1)
+        elif file_path.suffix == '.pass':
             try:
-                with open(get_password_file_path(domain), 'r') as f:
+                with open(file_path, 'r') as f:
                     lines = f.read().splitlines()
                     if len(lines) < 4:
-                        click.echo(f"Invalid password file format for {domain}. File content: {lines}")
-                        return
+                        click.echo(f"{' ' * (indent_level * 2)}Invalid password file format for {file_path.stem}.")
+                        continue
                     vault_id = lines[0]
                     description = lines[1]
                     user_id = lines[2]
@@ -321,20 +315,32 @@ def show(domain):
                     try:
                         user_password = cipher.decrypt(encrypted_password).decode()
                     except InvalidToken:
-                        click.echo(f"Failed to decrypt password for {domain}.")
-                        return
-                click.echo(f"Vault ID: {vault_id}\nDescription: {description}\nUser ID: {user_id}\nPassword for {domain}: {user_password}")
+                        click.echo(f"{' ' * (indent_level * 2)}Failed to decrypt password for {file_path.stem}.")
+                        continue
+                click.echo(f"{' ' * (indent_level * 2)}Domain: {file_path.stem}")
+                click.echo(f"{' ' * (indent_level * 2)}  Description: {description}")
+                click.echo(f"{' ' * (indent_level * 2)}  User ID: {user_id}")
+                click.echo(f"{' ' * (indent_level * 2)}  Password: {user_password}")
+                click.echo(f"{' ' * (indent_level * 2)}  Vault ID: {vault_id}")
             except FileNotFoundError:
-                click.echo(f"No password found for {domain}")
-        else:
-            for file_path in get_current_directory().glob('*.pass'):
-                domain_name = file_path.stem
+                click.echo(f"{' ' * (indent_level * 2)}No password found for {file_path.stem}")
+
+
+@vault.command()
+@click.argument('domain', required=False)
+def show(domain):
+    ensure_authenticated()
+    with key_lock:
+        current_dir = load_current_directory()
+        if domain:
+            file_path = current_dir / f"{domain}.pass"
+            if file_path.exists():
                 try:
                     with open(file_path, 'r') as f:
                         lines = f.read().splitlines()
                         if len(lines) < 4:
-                            click.echo(f"Invalid password file format for {domain_name}. File content: {lines}")
-                            continue
+                            click.echo(f"Invalid password file format for {domain}.")
+                            return
                         vault_id = lines[0]
                         description = lines[1]
                         user_id = lines[2]
@@ -342,18 +348,28 @@ def show(domain):
                         try:
                             user_password = cipher.decrypt(encrypted_password).decode()
                         except InvalidToken:
-                            click.echo(f"Failed to decrypt password for {domain_name}.")
-                            continue
-                    click.echo(f"\nDomain: {domain_name}\nVault ID: {vault_id}\nDescription: {description}\nUser ID: {user_id}\nPassword: {user_password}\n")
+                            click.echo(f"Failed to decrypt password for {domain}.")
+                            return
+                    click.echo(f"Domain: {domain}")
+                    click.echo(f"  Description: {description}")
+                    click.echo(f"  User ID: {user_id}")
+                    click.echo(f"  Password: {user_password}")
+                    click.echo(f"  Vault ID: {vault_id}")
                 except FileNotFoundError:
-                    click.echo(f"No password found for {domain_name}")
+                    click.echo(f"No password found for {domain}")
+            else:
+                click.echo(f"No password found for {domain}")
+        else:
+            click.echo(f"{current_dir.name}/")  # Print the current directory
+            show_passwords(current_dir, indent_level=1)  # Indent subfolders and files
 
 @vault.command()
 @click.argument('vault_id')
 def remove(vault_id):
     ensure_authenticated()
     with key_lock:
-        for file_path in get_current_directory().glob('*.pass'):
+        current_dir = load_current_directory()
+        for file_path in current_dir.glob('*.pass'):
             with open(file_path, 'r') as f:
                 lines = f.read().splitlines()
             if len(lines) < 4:
@@ -388,7 +404,8 @@ def generate(domain, length):
 def reformat():
     ensure_authenticated()
     with key_lock:
-        for file_path in get_current_directory().glob('*.pass'):
+        current_dir = load_current_directory()
+        for file_path in current_dir.glob('*.pass'):
             domain_name = file_path.stem
             with open(file_path, 'r') as f:
                 lines = f.read().splitlines()
@@ -409,7 +426,8 @@ def reformat():
 def update(vault_id):
     ensure_authenticated()
     with key_lock:
-        for file_path in get_current_directory().glob('*.pass'):
+        current_dir = load_current_directory()
+        for file_path in current_dir.glob('*.pass'):
             with open(file_path, 'r') as f:
                 lines = f.read().splitlines()
             if len(lines) < 4:
@@ -442,23 +460,47 @@ def install_completion():
 def rotate_key():
     ensure_authenticated()
     with key_lock:
-        old_key = cipher._signing_key
-        new_key = generate_new_key()
-        old_cipher = cipher
-        new_cipher = Fernet(new_key)
         click.echo("Re-encrypting all passwords with the new key...")
-        reencrypt_passwords_in_folder(get_current_directory(), old_cipher, new_cipher)
-        store_new_key(new_key)
+        rotate_key_for_directory(DATA_DIR)
         click.echo("Key rotation completed successfully.")
+
+def rotate_key_for_directory(directory):
+    """Rotate key for all password files in the given directory."""
+    global cipher
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith('.pass'):
+                file_path = Path(root) / file
+                with open(file_path, 'r') as f:
+                    lines = f.read().splitlines()
+                    if len(lines) < 4:
+                        click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
+                        continue
+                    description = lines[1]
+                    user_id = lines[2]
+                    encrypted_password = lines[3].encode()
+                    try:
+                        decrypted_password = cipher.decrypt(encrypted_password)
+                    except InvalidToken:
+                        click.echo(f"Failed to decrypt {file_path.stem}. Skipping.")
+                        continue
+                    new_encrypted_password = cipher.encrypt(decrypted_password)
+                    password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
+                    with open(file_path, 'w') as f:
+                        f.write(password_entry)
+    logging.info(f"Re-encryption completed for directory: {directory}")
 
 @vault.command(name="delete-all")
 def delete_all():
-    """Delete all password entries."""
+    """Delete all password entries and directories."""
     ensure_authenticated()
     with key_lock:
-        for file_path in get_current_directory().glob('*.pass'):
-            os.remove(file_path)
-        click.echo("All password entries have been deleted.")
+        for root, dirs, files in os.walk(DATA_DIR, topdown=False):
+            for file in files:
+                os.remove(os.path.join(root, file))
+            for dir in dirs:
+                os.rmdir(os.path.join(root, dir))
+        click.echo("All password entries and directories have been deleted.")
 
 @vault.command()
 @click.argument('description')
@@ -466,8 +508,9 @@ def search(description):
     """Search for passwords by description."""
     ensure_authenticated()
     results = []
-    with key_lock:
-        for file_path in get_current_directory().glob('*.pass'):
+
+    def search_passwords(dir_path, description):
+        for file_path in dir_path.glob('*.pass'):
             with open(file_path, 'r') as f:
                 lines = f.read().splitlines()
                 if len(lines) < 4:
@@ -484,32 +527,56 @@ def search(description):
                     except InvalidToken:
                         click.echo(f"Failed to decrypt password for {file_path.stem}. Skipping.")
                         continue
+        for sub_dir in dir_path.iterdir():
+            if sub_dir.is_dir():
+                search_passwords(sub_dir, description)
+
+    current_dir = load_current_directory()
+    search_passwords(current_dir, description)
+
     if results:
         for domain, vault_id, desc, user_id, password in results:
             click.echo(f"\nDomain: {domain}\nVault ID: {vault_id}\nDescription: {desc}\nUser ID: {user_id}\nPassword: {password}\n")
     else:
         click.echo("No matching descriptions found.")
 
-@vault.command()
+@vault.command(name="create-folder")
 @click.argument('folder_name')
 def create_folder(folder_name):
-    """Create a new folder."""
+    """Create a new directory for storing passwords."""
     ensure_authenticated()
-    new_folder = get_current_directory() / folder_name
+    current_dir = load_current_directory()
+    new_folder = current_dir / folder_name
     new_folder.mkdir(parents=True, exist_ok=True)
-    click.echo(f"Folder {folder_name} created.")
+    click.echo(f"Folder '{folder_name}' created.")
+
+@vault.command(name="goto")
+@click.argument('directory')
+def goto(directory):
+    """Change the current directory for storing passwords."""
+    ensure_authenticated()
+    current_dir = load_current_directory()
+    
+    if directory == './':
+        new_dir = DATA_DIR
+    elif directory == '../':
+        new_dir = current_dir.parent.resolve() if current_dir != DATA_DIR else DATA_DIR
+    else:
+        new_dir = (current_dir / directory).resolve()
+
+    if new_dir.exists() and new_dir.is_dir() and str(DATA_DIR) in str(new_dir.resolve()):
+        save_current_directory(new_dir)
+        click.echo(f"Current directory changed to '{new_dir if new_dir != DATA_DIR else '/'}'.")
+    else:
+        click.echo(f"Directory '{directory}' does not exist.")
 
 @vault.command()
-@click.argument('folder_name')
-def goto(folder_name):
-    """Navigate to a specific folder."""
-    ensure_authenticated()
-    new_directory = get_current_directory() / folder_name
-    if new_directory.is_dir():
-        set_current_directory(new_directory)
-        click.echo(f"Changed current directory to {folder_name}.")
-    else:
-        click.echo(f"Folder {folder_name} does not exist.")
+def pwd():
+    """Print the current directory."""
+    current_dir = load_current_directory()
+    click.echo(f"Current directory: {current_dir}")
+
+
 
 if __name__ == "__main__":
     vault()

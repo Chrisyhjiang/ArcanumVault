@@ -14,6 +14,8 @@ _vault_completion() {
         'delete-all:Delete all passwords'
         'search:Returns all relevant entries based on your input description'
         'create-folder:Create a new directory for storing passwords'
+        'goto:Change current directory'
+        'pwd:prints current directory'
     )
 
     _describe -t commands 'vault commands' commands
