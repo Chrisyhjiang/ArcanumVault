@@ -1,4 +1,0 @@
-click
-cryptography
-pam
-pyobjc
