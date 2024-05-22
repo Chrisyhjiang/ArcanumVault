@@ -11,8 +11,9 @@ _vault_completion() {
         'update:Update a password entry by vault ID'
         'install-completion:Install the shell completion'
         'rotate-key:Rotate the encryption key and re-encrypt all stored passwords'
-        'delete-all: deletes all passwords'
-        'search: returns all relevant entries based on your input description'
+        'delete-all:Delete all passwords'
+        'search:Returns all relevant entries based on your input description'
+        'create-folder:Create a new directory for storing passwords'
     )
 
     _describe -t commands 'vault commands' commands

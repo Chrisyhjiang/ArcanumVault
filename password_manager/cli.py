@@ -24,6 +24,7 @@ DATA_DIR = Path.home() / ".password_manager" / "data"
 KEY_FILE = Path.home() / ".password_manager" / "key.key"
 SESSION_FILE = Path.home() / ".password_manager" / ".session"
 PASSWORD_FILE = Path.home() / ".password_manager" / ".password"
+CURRENT_DIRECTORY_FILE = Path.home() / ".password_manager" / ".current_directory"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 SESSION_TIMEOUT = 3600  # Set session timeout to 3600 seconds (1 hour)
 
@@ -52,7 +53,7 @@ def set_permissions(path):
     os.chmod(path, 0o600)  # Owner can read and write
 
 def get_password_file_path(domain):
-    return DATA_DIR / f"{domain}.pass"
+    return get_current_directory() / f"{domain}.pass"
 
 def store_master_password(password: str):
     with open(PASSWORD_FILE, 'wb') as f:
@@ -111,8 +112,8 @@ def generate_new_key():
         raise ValueError("Master password is not set")
     return derive_key(password)
 
-def reencrypt_passwords(old_cipher, new_cipher):
-    for file_path in DATA_DIR.glob('*.pass'):
+def reencrypt_passwords_in_folder(folder, old_cipher, new_cipher):
+    for file_path in folder.glob('**/*.pass'):
         with open(file_path, 'r') as f:
             lines = f.read().splitlines()
             if len(lines) < 4:
@@ -130,7 +131,7 @@ def reencrypt_passwords(old_cipher, new_cipher):
             password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
             with open(file_path, 'w') as f:
                 f.write(password_entry)
-    logging.info("Re-encryption completed")
+    logging.info("Re-encryption completed in folder: " + str(folder))
 
 def store_new_key(new_key):
     global key_lock
@@ -151,7 +152,7 @@ def rotate_key_periodically():
             new_key = generate_new_key()
             old_cipher = cipher
             new_cipher = Fernet(new_key)
-            reencrypt_passwords(old_cipher, new_cipher)
+            reencrypt_passwords_in_folder(get_current_directory(), old_cipher, new_cipher)
             store_new_key(new_key)
             logging.info("Completed periodic key rotation")
         time.sleep(1800)  # Rotate key every 30 minutes (1800 seconds)
@@ -262,6 +263,17 @@ def authenticate_user():
         start_periodic_task()
         periodic_task_started = True
 
+def get_current_directory():
+    if CURRENT_DIRECTORY_FILE.exists():
+        with open(CURRENT_DIRECTORY_FILE, 'r') as f:
+            return Path(f.read().strip())
+    return DATA_DIR
+
+def set_current_directory(directory):
+    with open(CURRENT_DIRECTORY_FILE, 'w') as f:
+        f.write(str(directory))
+    set_permissions(CURRENT_DIRECTORY_FILE)
+
 @click.group(invoke_without_command=True)
 @click.pass_context
 def vault(ctx):
@@ -315,7 +327,7 @@ def show(domain):
             except FileNotFoundError:
                 click.echo(f"No password found for {domain}")
         else:
-            for file_path in DATA_DIR.glob('*.pass'):
+            for file_path in get_current_directory().glob('*.pass'):
                 domain_name = file_path.stem
                 try:
                     with open(file_path, 'r') as f:
@@ -341,7 +353,7 @@ def show(domain):
 def remove(vault_id):
     ensure_authenticated()
     with key_lock:
-        for file_path in DATA_DIR.glob('*.pass'):
+        for file_path in get_current_directory().glob('*.pass'):
             with open(file_path, 'r') as f:
                 lines = f.read().splitlines()
             if len(lines) < 4:
@@ -376,7 +388,7 @@ def generate(domain, length):
 def reformat():
     ensure_authenticated()
     with key_lock:
-        for file_path in DATA_DIR.glob('*.pass'):
+        for file_path in get_current_directory().glob('*.pass'):
             domain_name = file_path.stem
             with open(file_path, 'r') as f:
                 lines = f.read().splitlines()
@@ -397,7 +409,7 @@ def reformat():
 def update(vault_id):
     ensure_authenticated()
     with key_lock:
-        for file_path in DATA_DIR.glob('*.pass'):
+        for file_path in get_current_directory().glob('*.pass'):
             with open(file_path, 'r') as f:
                 lines = f.read().splitlines()
             if len(lines) < 4:
@@ -435,24 +447,7 @@ def rotate_key():
         old_cipher = cipher
         new_cipher = Fernet(new_key)
         click.echo("Re-encrypting all passwords with the new key...")
-        for file_path in DATA_DIR.glob('*.pass'):
-            with open(file_path, 'r') as f:
-                lines = f.read().splitlines()
-                if len(lines) < 4:
-                    click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
-                    continue
-                description = lines[1]
-                user_id = lines[2]
-                encrypted_password = lines[3].encode()
-                try:
-                    decrypted_password = old_cipher.decrypt(encrypted_password)
-                except InvalidToken:
-                    click.echo(f"Failed to decrypt {file_path.stem} with the old key. Skipping.")
-                    continue
-                new_encrypted_password = new_cipher.encrypt(decrypted_password)
-                password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
-                with open(file_path, 'w') as f:
-                    f.write(password_entry)
+        reencrypt_passwords_in_folder(get_current_directory(), old_cipher, new_cipher)
         store_new_key(new_key)
         click.echo("Key rotation completed successfully.")
 
@@ -461,7 +456,7 @@ def delete_all():
     """Delete all password entries."""
     ensure_authenticated()
     with key_lock:
-        for file_path in DATA_DIR.glob('*.pass'):
+        for file_path in get_current_directory().glob('*.pass'):
             os.remove(file_path)
         click.echo("All password entries have been deleted.")
 
@@ -472,7 +467,7 @@ def search(description):
     ensure_authenticated()
     results = []
     with key_lock:
-        for file_path in DATA_DIR.glob('*.pass'):
+        for file_path in get_current_directory().glob('*.pass'):
             with open(file_path, 'r') as f:
                 lines = f.read().splitlines()
                 if len(lines) < 4:
@@ -494,6 +489,27 @@ def search(description):
             click.echo(f"\nDomain: {domain}\nVault ID: {vault_id}\nDescription: {desc}\nUser ID: {user_id}\nPassword: {password}\n")
     else:
         click.echo("No matching descriptions found.")
+
+@vault.command()
+@click.argument('folder_name')
+def create_folder(folder_name):
+    """Create a new folder."""
+    ensure_authenticated()
+    new_folder = get_current_directory() / folder_name
+    new_folder.mkdir(parents=True, exist_ok=True)
+    click.echo(f"Folder {folder_name} created.")
+
+@vault.command()
+@click.argument('folder_name')
+def goto(folder_name):
+    """Navigate to a specific folder."""
+    ensure_authenticated()
+    new_directory = get_current_directory() / folder_name
+    if new_directory.is_dir():
+        set_current_directory(new_directory)
+        click.echo(f"Changed current directory to {folder_name}.")
+    else:
+        click.echo(f"Folder {folder_name} does not exist.")
 
 if __name__ == "__main__":
     vault()
