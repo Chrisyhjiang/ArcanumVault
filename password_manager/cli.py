@@ -52,9 +52,13 @@ def set_permissions(path):
     """Set secure permissions for the file."""
     os.chmod(path, 0o600)  # Owner can read and write
 
-def get_password_file_path(domain):
+def get_password_file_path(domain, folder=None):
     current_dir = load_current_directory()
-    return current_dir / f"{domain}.pass"
+    if folder:
+        target_dir = (current_dir / folder).resolve()
+    else:
+        target_dir = current_dir
+    return target_dir / f"{domain}.pass"
 
 def store_master_password(password: str):
     with open(PASSWORD_FILE, 'wb') as f:
@@ -143,6 +147,7 @@ def store_new_key(new_key):
         logging.debug(f"Stored new key: {new_key}")
         logging.info("New key stored successfully with KDF")
         reload_cipher()
+
 def rotate_key_periodically():
     while True:
         with key_lock:  # Ensure exclusive access
@@ -281,7 +286,8 @@ def authenticate():
     authenticate_user()
 
 @vault.command()
-def insert():
+@click.argument('folder', required=False)
+def insert(folder):
     ensure_authenticated()
     with key_lock:
         vault_id = str(uuid.uuid4())
@@ -291,7 +297,9 @@ def insert():
         user_password = click.prompt('Password', hide_input=True, confirmation_prompt=True)
         encrypted_password = cipher.encrypt(user_password.encode())
         password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password.decode()}"
-        with open(get_password_file_path(domain), 'w') as f:
+        file_path = get_password_file_path(domain, folder)
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(file_path, 'w') as f:
             f.write(password_entry)
         click.echo(f"Password for {domain} inserted with description, User ID, and vaultID {vault_id}.")
 
@@ -364,11 +372,14 @@ def show(domain):
             show_passwords(current_dir, indent_level=1)  # Indent subfolders and files
 
 @vault.command()
+@click.argument('folder', required=False)
 @click.argument('vault_id')
-def remove(vault_id):
+def remove(vault_id, folder):
     ensure_authenticated()
     with key_lock:
         current_dir = load_current_directory()
+        if folder:
+            current_dir = current_dir / folder
         for file_path in current_dir.glob('*.pass'):
             with open(file_path, 'r') as f:
                 lines = f.read().splitlines()
@@ -383,9 +394,10 @@ def remove(vault_id):
             click.echo(f"No entry found with vault ID {vault_id}")
 
 @vault.command()
+@click.argument('folder', required=False)
 @click.argument('domain')
 @click.argument('length', type=int)
-def generate(domain, length):
+def generate(domain, length, folder):
     ensure_authenticated()
     with key_lock:
         import random
@@ -396,7 +408,9 @@ def generate(domain, length):
         description = click.prompt('Description')
         user_id = click.prompt('User ID')
         password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password.decode()}"
-        with open(get_password_file_path(domain), 'w') as f:
+        file_path = get_password_file_path(domain, folder)
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(file_path, 'w') as f:
             f.write(password_entry)
         click.echo(f"Generated password for {domain} with description, User ID, and vaultID {vault_id}: {generated_password}")
 
@@ -422,11 +436,14 @@ def reformat():
                 click.echo(f"Skipping {domain_name}, invalid format.")
 
 @vault.command()
+@click.argument('folder', required=False)
 @click.argument('vault_id')
-def update(vault_id):
+def update(vault_id, folder):
     ensure_authenticated()
     with key_lock:
         current_dir = load_current_directory()
+        if folder:
+            current_dir = current_dir / folder
         for file_path in current_dir.glob('*.pass'):
             with open(file_path, 'r') as f:
                 lines = f.read().splitlines()
@@ -575,8 +592,6 @@ def pwd():
     """Print the current directory."""
     current_dir = load_current_directory()
     click.echo(f"Current directory: {current_dir}")
-
-
 
 if __name__ == "__main__":
     vault()
