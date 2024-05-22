@@ -23,12 +23,13 @@ logging.info("Logging initialized")  # Initial log message to verify logging set
 DATA_DIR = Path.home() / ".password_manager" / "data"
 KEY_FILE = Path.home() / ".password_manager" / "key.key"
 SESSION_FILE = Path.home() / ".password_manager" / ".session"
+PASSWORD_FILE = Path.home() / ".password_manager" / ".password"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 SESSION_TIMEOUT = 3600  # Set session timeout to 3600 seconds (1 hour)
 
 cipher = None
 periodic_task_started = False
-system_password = None
+fixed_salt = base64.urlsafe_b64decode(b'YxLkCJl5Pl2kGqIdLCIHAg==')  # Replace with your generated fixed salt value
 
 if os.uname().sysname == "Darwin":
     import objc
@@ -53,8 +54,19 @@ def set_permissions(path):
 def get_password_file_path(domain):
     return DATA_DIR / f"{domain}.pass"
 
-def derive_key(password: str) -> bytes:
-    fixed_salt = b'some_fixed_salt_value'  # Ensure this value is consistent
+def store_master_password(password: str):
+    with open(PASSWORD_FILE, 'wb') as f:
+        f.write(password.encode())
+    set_permissions(PASSWORD_FILE)
+
+def load_master_password():
+    if PASSWORD_FILE.exists():
+        with open(PASSWORD_FILE, 'rb') as f:
+            return f.read().decode()
+    return None
+
+def derive_key(password: str):
+    global fixed_salt  # Access the global variable
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
@@ -68,8 +80,10 @@ def derive_key(password: str) -> bytes:
     return derived_key_b64
 
 def load_key():
-    global cipher, system_password
-    key = derive_key(system_password)
+    password = load_master_password()
+    if password is None:
+        raise ValueError("Master password is not set")
+    key = derive_key(password)
     if not KEY_FILE.exists():
         with open(KEY_FILE, 'wb') as key_file:
             key_file.write(key)
@@ -84,19 +98,18 @@ def load_key():
                 logging.error("Derived key does not match stored key")
                 raise ValueError("Invalid password.")
     logging.info("Loaded key with KDF")
+    global cipher
     cipher = Fernet(key)
 
 def reload_cipher():
-    global cipher, system_password
-    if system_password is None:
-        raise ValueError("System password is not set")
     load_key()
     logging.info("Cipher reloaded with KDF")
 
 def generate_new_key():
-    key = derive_key(system_password)
-    logging.debug(f"Generated new key: {key}")
-    return key
+    password = load_master_password()
+    if password is None:
+        raise ValueError("Master password is not set")
+    return derive_key(password)
 
 def reencrypt_passwords(old_cipher, new_cipher):
     for file_path in DATA_DIR.glob('*.pass'):
@@ -130,7 +143,7 @@ def store_new_key(new_key):
         reload_cipher()
 
 def rotate_key_periodically():
-    global system_password, cipher
+    global cipher
     while True:
         with key_lock:  # Ensure exclusive access
             logging.info("Running periodic key rotation")
@@ -153,7 +166,6 @@ def start_periodic_task():
 
 def authenticate_fingerprint_mac():
     """Authenticate the user using fingerprint on macOS."""
-    global system_password
     context = LAContext.alloc().init()
     success, error = context.canEvaluatePolicy_error_(LAPolicyDeviceOwnerAuthenticationWithBiometrics, None)
     
@@ -177,14 +189,7 @@ def authenticate_fingerprint_mac():
             callback
         )
         libdispatch.dispatch_semaphore_wait(semaphore, c_long(-1))
-        
-        if authenticated:
-            # Prompt for system password after successful fingerprint authentication
-            system_password = click.prompt('System Password', hide_input=True)
-            load_key()
-            return authenticated
-        else:
-            return authenticated
+        return authenticated
     else:
         click.echo(f"Fingerprint authentication not available: {error}")
         return False
@@ -207,33 +212,25 @@ def ensure_authenticated():
         refresh_session()
 
 def refresh_session():
-    global system_password
     with open(SESSION_FILE, 'w') as f:
         f.write(str(int(time.time())))
     reload_cipher()
 
 def authenticate_user():
-    global cipher, periodic_task_started, system_password
+    global cipher, periodic_task_started
     pam_auth = pam.pam()
     
-    try:
-        username = os.getlogin()
-        if username == 'root':
-            username = getpass.getuser()
-    except Exception:
-        username = getpass.getuser()
-
     choice = click.prompt('Choose authentication method: [P]assword/[F]ingerprint', type=str).lower()
 
     if choice == 'p':
-        password = click.prompt('System Password', hide_input=True)
-        if not pam_auth.authenticate(username, password, service='login'):
+        master_password = click.prompt('Master Password', hide_input=True)
+        if not pam_auth.authenticate(getpass.getuser(), master_password, service='login'):
             click.echo("Authentication failed.")
             logging.error("Password authentication failed")
             exit(1)
         else:
             click.echo("Authentication succeeded.")
-            system_password = password
+            store_master_password(master_password)
             load_key()
             with open(SESSION_FILE, 'w') as f:
                 f.write(str(int(time.time())))
@@ -244,7 +241,10 @@ def authenticate_user():
                 logging.error("Fingerprint authentication failed")
                 exit(1)
             else:
-                click.echo("Fingerprint authentication succeeded.")
+                master_password = load_master_password()
+                if master_password is None:
+                    master_password = click.prompt('Master Password', hide_input=True)
+                    store_master_password(master_password)
                 load_key()
                 with open(SESSION_FILE, 'w') as f:
                     f.write(str(int(time.time())))
