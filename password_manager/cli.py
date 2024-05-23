@@ -374,24 +374,28 @@ def show(domain):
 @vault.command()
 @click.argument('folder', required=False)
 @click.argument('vault_id')
-def remove(vault_id, folder):
+def remove(vault_id, folder=None):
     ensure_authenticated()
     with key_lock:
         current_dir = load_current_directory()
         if folder:
             current_dir = current_dir / folder
-        for file_path in current_dir.glob('*.pass'):
-            with open(file_path, 'r') as f:
-                lines = f.read().splitlines()
-            if len(lines) < 4:
-                continue
-            existing_vault_id = lines[0]
-            if existing_vault_id == vault_id:
-                os.remove(file_path)
-                click.echo(f"Password with vault ID {vault_id} removed.")
-                break
-        else:
-            click.echo(f"No entry found with vault ID {vault_id}")
+
+        for root, _, files in os.walk(current_dir):
+            for file in files:
+                if file.endswith('.pass'):
+                    file_path = Path(root) / file
+                    with open(file_path, 'r') as f:
+                        lines = f.read().splitlines()
+                    if len(lines) < 4:
+                        continue
+                    existing_vault_id = lines[0]
+                    if existing_vault_id == vault_id:
+                        os.remove(file_path)
+                        click.echo(f"Password with vault ID {vault_id} removed.")
+                        return
+        click.echo(f"No entry found with vault ID {vault_id}")
+
 
 @vault.command()
 @click.argument('folder', required=False)
