@@ -9,7 +9,6 @@ from pathlib import Path
 import pam
 import time
 import uuid
-import ctypes
 from ctypes import CDLL, c_void_p, c_long
 import threading
 import logging
@@ -372,29 +371,39 @@ def show(domain):
             show_passwords(current_dir, indent_level=1)  # Indent subfolders and files
 
 @vault.command()
-@click.argument('folder', required=False)
-@click.argument('vault_id')
-def remove(vault_id, folder=None):
+@click.argument('folder_vault_id', nargs=-1)
+def remove(folder_vault_id):
     ensure_authenticated()
+    if len(folder_vault_id) == 0:
+        click.echo("No vault ID provided.")
+        return
+    elif len(folder_vault_id) == 1:
+        folder = None
+        vault_id = folder_vault_id[0]
+    else:
+        folder = folder_vault_id[0]
+        vault_id = folder_vault_id[1]
+    
     with key_lock:
         current_dir = load_current_directory()
         if folder:
             current_dir = current_dir / folder
+        if not current_dir.exists():
+            click.echo(f"Folder '{folder}' does not exist.")
+            return
+        for file_path in current_dir.glob('*.pass'):
+            with open(file_path, 'r') as f:
+                lines = f.read().splitlines()
+            if len(lines) < 4:
+                continue
+            existing_vault_id = lines[0]
+            if existing_vault_id == vault_id:
+                os.remove(file_path)
+                click.echo(f"Password with vault ID {vault_id} removed.")
+                break
+        else:
+            click.echo(f"No entry found with vault ID {vault_id}")
 
-        for root, _, files in os.walk(current_dir):
-            for file in files:
-                if file.endswith('.pass'):
-                    file_path = Path(root) / file
-                    with open(file_path, 'r') as f:
-                        lines = f.read().splitlines()
-                    if len(lines) < 4:
-                        continue
-                    existing_vault_id = lines[0]
-                    if existing_vault_id == vault_id:
-                        os.remove(file_path)
-                        click.echo(f"Password with vault ID {vault_id} removed.")
-                        return
-        click.echo(f"No entry found with vault ID {vault_id}")
 
 
 @vault.command()
@@ -440,14 +449,26 @@ def reformat():
                 click.echo(f"Skipping {domain_name}, invalid format.")
 
 @vault.command()
-@click.argument('folder', required=False)
-@click.argument('vault_id')
-def update(vault_id, folder):
+@click.argument('folder_vault_id', nargs=-1)
+def update(folder_vault_id):
     ensure_authenticated()
+    if len(folder_vault_id) == 0:
+        click.echo("No vault ID provided.")
+        return
+    elif len(folder_vault_id) == 1:
+        folder = None
+        vault_id = folder_vault_id[0]
+    else:
+        folder = folder_vault_id[0]
+        vault_id = folder_vault_id[1]
+    
     with key_lock:
         current_dir = load_current_directory()
         if folder:
             current_dir = current_dir / folder
+        if not current_dir.exists():
+            click.echo(f"Folder '{folder}' does not exist.")
+            return
         for file_path in current_dir.glob('*.pass'):
             with open(file_path, 'r') as f:
                 lines = f.read().splitlines()
@@ -599,3 +620,4 @@ def pwd():
 
 if __name__ == "__main__":
     vault()
+    
