@@ -215,14 +215,19 @@ def refresh_session():
         f.write(str(int(time.time())))
     reload_cipher()
 
-def authenticate_user():
+
+def authenticate_user(auth_method=None, master_password=None):
     global cipher, periodic_task_started
     pam_auth = pam.pam()
-    
-    choice = click.prompt('Choose authentication method: [P]assword/[F]ingerprint', type=str).lower()
 
-    if choice == 'p':
-        master_password = click.prompt('Master Password', hide_input=True)
+    print(f"authenticate_user called with auth_method: {auth_method}, master_password: {master_password}")
+
+    if auth_method is None:
+        auth_method = click.prompt('Choose authentication method: [P]assword/[F]ingerprint', type=str).lower()
+
+    if auth_method == 'p':
+        if master_password is None:
+            master_password = click.prompt('Master Password', hide_input=True)
         if not pam_auth.authenticate(getpass.getuser(), master_password, service='login'):
             click.echo("Authentication failed.")
             logging.error("Password authentication failed")
@@ -233,7 +238,7 @@ def authenticate_user():
             load_key()
             with open(SESSION_FILE, 'w') as f:
                 f.write(str(int(time.time())))
-    elif choice == 'f':
+    elif auth_method == 'f':
         if os.uname().sysname == "Darwin":
             if not authenticate_fingerprint_mac():
                 click.echo("Fingerprint authentication failed.")
@@ -274,15 +279,71 @@ def save_current_directory(current_directory):
 @click.group(invoke_without_command=True)
 @click.pass_context
 def vault(ctx):
+    if not PASSWORD_FILE.exists():
+        click.echo("Master password is not set. Run 'vault set-master-password' to set it.")
+        ctx.invoke(set_master_password)
+        return
+
     if not is_authenticated():
         click.echo("You need to authenticate first.")
         ctx.invoke(authenticate)
     elif ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
 
+@click.command()
+@click.option('--auth-method', type=str, required=True, help='Authentication method: password or fingerprint')
+@click.option('--master-password', type=str, help='Master password for authentication')
+def authenticate(auth_method, master_password):
+    print(f"auth_method: {auth_method}, master_password: {master_password}")
+    if auth_method == 'password' and master_password is None:
+        click.echo("Error: --master-password is required for password authentication")
+        exit(1)
+    authenticate_user(auth_method, master_password)
+
+@vault.command()
+def set_master_password():
+    master_password = click.prompt('Master Password', hide_input=True)
+    if PASSWORD_FILE.exists():
+        click.echo("Master password is already set.")
+        return
+
+    store_master_password(master_password)
+    load_key()  # Ensure the key is generated and stored
+    with open(SESSION_FILE, 'w') as f:
+        f.write(str(int(time.time())))
+    click.echo("Master password set successfully.")
+
+@vault.command()
+def check_master_password():
+    if PASSWORD_FILE.exists():
+        click.echo("Master password is set")
+    else:
+        click.echo("Master password is not set")
+
 @vault.command()
 def authenticate():
     authenticate_user()
+
+@vault.command()
+def check_master_password():
+    if PASSWORD_FILE.exists():
+        click.echo("Master password is set")
+    else:
+        click.echo("Master password is not set")
+
+@vault.command()
+def set_master_password():
+    master_password = click.prompt('Master Password', hide_input=True)
+    if PASSWORD_FILE.exists():
+        click.echo("Master password is already set")
+        return
+
+    # Store the master password securely
+    store_master_password(master_password)
+    load_key()  # Ensure the key is generated and stored
+    with open(SESSION_FILE, 'w') as f:
+        f.write(str(int(time.time())))
+    click.echo("Master password set successfully")
 
 @vault.command()
 @click.argument('folder', required=False)
@@ -624,4 +685,3 @@ def pwd():
 
 if __name__ == "__main__":
     vault()
-    
