@@ -288,6 +288,10 @@ def authenticate():
 @click.argument('folder', required=False)
 def insert(folder):
     ensure_authenticated()
+    if start_periodic_task:
+        logging.info("value has been altered !!!!!")
+    else:
+        logging.info("value has not been altered !!!!!")
     with key_lock:
         vault_id = str(uuid.uuid4())
         domain = click.prompt('Domain Name')
