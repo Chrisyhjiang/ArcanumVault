@@ -216,12 +216,16 @@ def refresh_session():
     reload_cipher()
 
 
-def authenticate_user():
+def authenticate_user(auth_method=None, master_password=None):
     global cipher, periodic_task_started
     pam_auth = pam.pam()
-    choice = click.prompt('Choose authentication method: [P]assword/[F]ingerprint', type=str).lower()
-    if choice == 'p':
-        master_password = click.prompt('Master Password', hide_input=True)
+
+    if auth_method is None:
+        auth_method = click.prompt('Choose authentication method: [P]assword/[F]ingerprint', type=str).lower()
+
+    if auth_method == 'p':
+        if master_password is None:
+            master_password = click.prompt('Master Password', hide_input=True)
         if not pam_auth.authenticate(getpass.getuser(), master_password, service='login'):
             click.echo("Authentication failed.")
             logging.error("Password authentication failed")
@@ -232,7 +236,7 @@ def authenticate_user():
             load_key()
             with open(SESSION_FILE, 'w') as f:
                 f.write(str(int(time.time())))
-    elif choice == 'f':
+    elif auth_method == 'f':
         if os.uname().sysname == "Darwin":
             if not authenticate_fingerprint_mac():
                 click.echo("Fingerprint authentication failed.")
@@ -284,9 +288,11 @@ def vault(ctx):
     elif ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
 
-@vault.command()
-def authenticate():
-    authenticate_user()
+@click.command()
+@click.option('--auth-method', type=str, help='Authentication method: password or fingerprint')
+@click.option('--master-password', type=str, help='Master password for authentication')
+def authenticate(auth_method, master_password):
+    authenticate_user(auth_method, master_password)
 
 @vault.command()
 def set_master_password():
