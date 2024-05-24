@@ -9,6 +9,7 @@ setup(
         'click',
         'cryptography',
         'python-pam',
+        'six',
         'pyobjc-framework-Cocoa',
         'pyobjc-framework-Quartz',
         'pyobjc-framework-LocalAuthentication',

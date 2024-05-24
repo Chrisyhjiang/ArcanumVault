@@ -220,6 +220,8 @@ def authenticate_user(auth_method=None, master_password=None):
     global cipher, periodic_task_started
     pam_auth = pam.pam()
 
+    print(f"authenticate_user called with auth_method: {auth_method}, master_password: {master_password}")
+
     if auth_method is None:
         auth_method = click.prompt('Choose authentication method: [P]assword/[F]ingerprint', type=str).lower()
 
@@ -289,9 +291,13 @@ def vault(ctx):
         click.echo(ctx.get_help())
 
 @click.command()
-@click.option('--auth-method', type=str, help='Authentication method: password or fingerprint')
+@click.option('--auth-method', type=str, required=True, help='Authentication method: password or fingerprint')
 @click.option('--master-password', type=str, help='Master password for authentication')
 def authenticate(auth_method, master_password):
+    print(f"auth_method: {auth_method}, master_password: {master_password}")
+    if auth_method == 'password' and master_password is None:
+        click.echo("Error: --master-password is required for password authentication")
+        exit(1)
     authenticate_user(auth_method, master_password)
 
 @vault.command()
@@ -679,4 +685,3 @@ def pwd():
 
 if __name__ == "__main__":
     vault()
-    
