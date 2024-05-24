@@ -215,12 +215,11 @@ def refresh_session():
         f.write(str(int(time.time())))
     reload_cipher()
 
+
 def authenticate_user():
     global cipher, periodic_task_started
     pam_auth = pam.pam()
-    
     choice = click.prompt('Choose authentication method: [P]assword/[F]ingerprint', type=str).lower()
-
     if choice == 'p':
         master_password = click.prompt('Master Password', hide_input=True)
         if not pam_auth.authenticate(getpass.getuser(), master_password, service='login'):
@@ -274,6 +273,11 @@ def save_current_directory(current_directory):
 @click.group(invoke_without_command=True)
 @click.pass_context
 def vault(ctx):
+    if not PASSWORD_FILE.exists():
+        click.echo("Master password is not set. Run 'vault set-master-password' to set it.")
+        ctx.invoke(set_master_password)
+        return
+
     if not is_authenticated():
         click.echo("You need to authenticate first.")
         ctx.invoke(authenticate)
@@ -283,6 +287,51 @@ def vault(ctx):
 @vault.command()
 def authenticate():
     authenticate_user()
+
+@vault.command()
+def set_master_password():
+    master_password = click.prompt('Master Password', hide_input=True)
+    if PASSWORD_FILE.exists():
+        click.echo("Master password is already set.")
+        return
+
+    store_master_password(master_password)
+    load_key()  # Ensure the key is generated and stored
+    with open(SESSION_FILE, 'w') as f:
+        f.write(str(int(time.time())))
+    click.echo("Master password set successfully.")
+
+@vault.command()
+def check_master_password():
+    if PASSWORD_FILE.exists():
+        click.echo("Master password is set")
+    else:
+        click.echo("Master password is not set")
+
+@vault.command()
+def authenticate():
+    authenticate_user()
+
+@vault.command()
+def check_master_password():
+    if PASSWORD_FILE.exists():
+        click.echo("Master password is set")
+    else:
+        click.echo("Master password is not set")
+
+@vault.command()
+def set_master_password():
+    master_password = click.prompt('Master Password', hide_input=True)
+    if PASSWORD_FILE.exists():
+        click.echo("Master password is already set")
+        return
+
+    # Store the master password securely
+    store_master_password(master_password)
+    load_key()  # Ensure the key is generated and stored
+    with open(SESSION_FILE, 'w') as f:
+        f.write(str(int(time.time())))
+    click.echo("Master password set successfully")
 
 @vault.command()
 @click.argument('folder', required=False)
