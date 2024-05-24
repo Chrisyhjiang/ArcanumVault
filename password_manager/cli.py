@@ -60,14 +60,26 @@ def get_password_file_path(domain, folder=None):
     return target_dir / f"{domain}.pass"
 
 def store_master_password(password: str):
+    key = derive_key(password)
+    cipher = Fernet(key)
+    encrypted_password = cipher.encrypt(password.encode())
     with open(PASSWORD_FILE, 'wb') as f:
-        f.write(password.encode())
+        f.write(encrypted_password)
     set_permissions(PASSWORD_FILE)
 
 def load_master_password():
     if PASSWORD_FILE.exists():
         with open(PASSWORD_FILE, 'rb') as f:
-            return f.read().decode()
+            encrypted_password = f.read()
+        password = click.prompt('Master Password', hide_input=True)
+        key = derive_key(password)
+        cipher = Fernet(key)
+        try:
+            decrypted_password = cipher.decrypt(encrypted_password).decode()
+            return decrypted_password
+        except InvalidToken:
+            logging.error("Failed to decrypt the master password with the provided key.")
+            raise ValueError("Invalid master password.")
     return None
 
 def derive_key(password: str):
@@ -84,11 +96,10 @@ def derive_key(password: str):
     logging.debug(f"Derived key: {derived_key_b64}")
     return derived_key_b64
 
-def load_key():
-    password = load_master_password()
-    if password is None:
+def load_key(master_password):
+    if master_password is None:
         raise ValueError("Master password is not set")
-    key = derive_key(password)
+    key = derive_key(master_password)
     if not KEY_FILE.exists():
         with open(KEY_FILE, 'wb') as key_file:
             key_file.write(key)
@@ -106,8 +117,8 @@ def load_key():
     global cipher
     cipher = Fernet(key)
 
-def reload_cipher():
-    load_key()
+def reload_cipher(master_password):
+    load_key(master_password)
     logging.info("Cipher reloaded with KDF")
 
 def generate_new_key():
@@ -145,7 +156,7 @@ def store_new_key(new_key):
         set_permissions(KEY_FILE)
         logging.debug(f"Stored new key: {new_key}")
         logging.info("New key stored successfully with KDF")
-        reload_cipher()
+        reload_cipher(new_key)
 
 def rotate_key_periodically():
     while True:
@@ -203,18 +214,17 @@ def is_authenticated():
         return False
     return True
 
-def ensure_authenticated():
+def ensure_authenticated(master_password):
     if not is_authenticated():
         click.echo("You need to authenticate first. Run 'vault authenticate' to authenticate.")
         exit(1)
     else:
-        refresh_session()
+        refresh_session(master_password)
 
-def refresh_session():
+def refresh_session(master_password):
     with open(SESSION_FILE, 'w') as f:
         f.write(str(int(time.time())))
-    reload_cipher()
-
+    reload_cipher(master_password)
 
 def authenticate_user(auth_method=None, master_password=None):
     global cipher, periodic_task_started
@@ -235,7 +245,7 @@ def authenticate_user(auth_method=None, master_password=None):
         else:
             click.echo("Authentication succeeded.")
             store_master_password(master_password)
-            load_key()
+            load_key(master_password)
             with open(SESSION_FILE, 'w') as f:
                 f.write(str(int(time.time())))
     elif auth_method == 'f':
@@ -249,7 +259,7 @@ def authenticate_user(auth_method=None, master_password=None):
                 if master_password is None:
                     master_password = click.prompt('Master Password', hide_input=True)
                     store_master_password(master_password)
-                load_key()
+                load_key(master_password)
                 with open(SESSION_FILE, 'w') as f:
                     f.write(str(int(time.time())))
         else:
@@ -308,7 +318,7 @@ def set_master_password():
         return
 
     store_master_password(master_password)
-    load_key()  # Ensure the key is generated and stored
+    load_key(master_password)  # Ensure the key is generated and stored
     with open(SESSION_FILE, 'w') as f:
         f.write(str(int(time.time())))
     click.echo("Master password set successfully.")
@@ -340,7 +350,7 @@ def set_master_password():
 
     # Store the master password securely
     store_master_password(master_password)
-    load_key()  # Ensure the key is generated and stored
+    load_key(master_password)  # Ensure the key is generated and stored
     with open(SESSION_FILE, 'w') as f:
         f.write(str(int(time.time())))
     click.echo("Master password set successfully")
@@ -348,11 +358,8 @@ def set_master_password():
 @vault.command()
 @click.argument('folder', required=False)
 def insert(folder):
-    ensure_authenticated()
-    if start_periodic_task:
-        logging.info("value has been altered !!!!!")
-    else:
-        logging.info("value has not been altered !!!!!")
+    master_password = click.prompt('Master Password', hide_input=True)
+    ensure_authenticated(master_password)
     with key_lock:
         vault_id = str(uuid.uuid4())
         domain = click.prompt('Domain Name')
@@ -397,11 +404,11 @@ def show_passwords(directory, indent_level=0):
             except FileNotFoundError:
                 click.echo(f"{' ' * (indent_level * 2)}No password found for {file_path.stem}")
 
-
 @vault.command()
 @click.argument('domain', required=False)
 def show(domain):
-    ensure_authenticated()
+    master_password = click.prompt('Master Password', hide_input=True)
+    ensure_authenticated(master_password)
     with key_lock:
         current_dir = load_current_directory()
         if domain:
@@ -438,7 +445,8 @@ def show(domain):
 @vault.command()
 @click.argument('folder_vault_id', nargs=-1)
 def remove(folder_vault_id):
-    ensure_authenticated()
+    master_password = click.prompt('Master Password', hide_input=True)
+    ensure_authenticated(master_password)
     if len(folder_vault_id) == 0:
         click.echo("No vault ID provided.")
         return
@@ -469,14 +477,13 @@ def remove(folder_vault_id):
         else:
             click.echo(f"No entry found with vault ID {vault_id}")
 
-
-
 @vault.command()
 @click.argument('folder', required=False)
 @click.argument('domain')
 @click.argument('length', type=int)
 def generate(domain, length, folder):
-    ensure_authenticated()
+    master_password = click.prompt('Master Password', hide_input=True)
+    ensure_authenticated(master_password)
     with key_lock:
         import random
         import string
@@ -494,7 +501,8 @@ def generate(domain, length, folder):
 
 @vault.command()
 def reformat():
-    ensure_authenticated()
+    master_password = click.prompt('Master Password', hide_input=True)
+    ensure_authenticated(master_password)
     with key_lock:
         current_dir = load_current_directory()
         for file_path in current_dir.glob('*.pass'):
@@ -516,7 +524,8 @@ def reformat():
 @vault.command()
 @click.argument('folder_vault_id', nargs=-1)
 def update(folder_vault_id):
-    ensure_authenticated()
+    master_password = click.prompt('Master Password', hide_input=True)
+    ensure_authenticated(master_password)
     if len(folder_vault_id) == 0:
         click.echo("No vault ID provided.")
         return
@@ -565,7 +574,8 @@ def install_completion():
 
 @vault.command(name="rotate-key")
 def rotate_key():
-    ensure_authenticated()
+    master_password = click.prompt('Master Password', hide_input=True)
+    ensure_authenticated(master_password)
     with key_lock:
         click.echo("Re-encrypting all passwords with the new key...")
         rotate_key_for_directory(DATA_DIR)
@@ -600,7 +610,8 @@ def rotate_key_for_directory(directory):
 @vault.command(name="delete-all")
 def delete_all():
     """Delete all password entries and directories."""
-    ensure_authenticated()
+    master_password = click.prompt('Master Password', hide_input=True)
+    ensure_authenticated(master_password)
     with key_lock:
         for root, dirs, files in os.walk(DATA_DIR, topdown=False):
             for file in files:
@@ -613,7 +624,8 @@ def delete_all():
 @click.argument('description')
 def search(description):
     """Search for passwords by description."""
-    ensure_authenticated()
+    master_password = click.prompt('Master Password', hide_input=True)
+    ensure_authenticated(master_password)
     results = []
 
     def search_passwords(dir_path, description):
@@ -651,7 +663,8 @@ def search(description):
 @click.argument('folder_name')
 def create_folder(folder_name):
     """Create a new directory for storing passwords."""
-    ensure_authenticated()
+    master_password = click.prompt('Master Password', hide_input=True)
+    ensure_authenticated(master_password)
     current_dir = load_current_directory()
     new_folder = current_dir / folder_name
     new_folder.mkdir(parents=True, exist_ok=True)
@@ -661,7 +674,8 @@ def create_folder(folder_name):
 @click.argument('directory')
 def goto(directory):
     """Change the current directory for storing passwords."""
-    ensure_authenticated()
+    master_password = click.prompt('Master Password', hide_input=True)
+    ensure_authenticated(master_password)
     current_dir = load_current_directory()
     
     if directory == './':
@@ -680,6 +694,8 @@ def goto(directory):
 @vault.command()
 def pwd():
     """Print the current directory."""
+    master_password = click.prompt('Master Password', hide_input=True)
+    ensure_authenticated(master_password)
     current_dir = load_current_directory()
     click.echo(f"Current directory: {current_dir}")
 
