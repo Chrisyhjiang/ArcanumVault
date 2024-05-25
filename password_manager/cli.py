@@ -214,12 +214,13 @@ def is_authenticated():
         return False
     return True
 
-def ensure_authenticated(master_password):
+def ensure_authenticated():
     if not is_authenticated():
         click.echo("You need to authenticate first. Run 'vault authenticate' to authenticate.")
         exit(1)
     else:
-        refresh_session(master_password)
+        with open(SESSION_FILE, 'w') as f:
+            f.write(str(int(time.time())))
 
 def refresh_session(master_password):
     with open(SESSION_FILE, 'w') as f:
@@ -293,7 +294,6 @@ def vault(ctx):
         click.echo("Master password is not set. Run 'vault set-master-password' to set it.")
         ctx.invoke(set_master_password)
         return
-
     if not is_authenticated():
         click.echo("You need to authenticate first.")
         ctx.invoke(authenticate)
@@ -358,8 +358,8 @@ def set_master_password():
 @vault.command()
 @click.argument('folder', required=False)
 def insert(folder):
-    master_password = click.prompt('Master Password', hide_input=True)
-    ensure_authenticated(master_password)
+    # master_password = click.prompt('Master Password', hide_input=True)
+    ensure_authenticated()
     with key_lock:
         vault_id = str(uuid.uuid4())
         domain = click.prompt('Domain Name')
