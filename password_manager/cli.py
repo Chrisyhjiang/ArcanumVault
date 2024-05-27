@@ -24,12 +24,12 @@ SECURE_KEY_FILE = Path.home() / ".password_manager" / "secure_key.key"
 MASTER_PASSWORD_FILE = Path.home() / ".password_manager" / "master_password.enc"
 SESSION_FILE = Path.home() / ".password_manager" / ".session"
 CURRENT_DIRECTORY_FILE = Path.home() / ".password_manager" / ".current_directory"
+SALT_FILE = Path.home() / ".password_manager" / "salt"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 SESSION_TIMEOUT = 3600  # Set session timeout to 3600 seconds (1 hour)
 
 cipher = None
 periodic_task_started = False
-fixed_salt = base64.urlsafe_b64decode(b'YxLkCJl5Pl2kGqIdLCIHAg==')  # Replace with your generated fixed salt value
 
 if os.uname().sysname == "Darwin":
     import objc
@@ -50,6 +50,23 @@ key_lock = threading.Lock()
 def set_permissions(path):
     """Set secure permissions for the file."""
     os.chmod(path, 0o600)  # Owner can read and write
+
+def generate_salt():
+    """Generate a random salt and save it to a file."""
+    salt = os.urandom(16)  # Generate a 16-byte salt
+    with open(SALT_FILE, 'wb') as f:
+        f.write(salt)
+    return salt
+
+def load_salt():
+    """Load the salt from the file, generating it if it doesn't exist."""
+    if not SALT_FILE.exists():
+        return generate_salt()
+    with open(SALT_FILE, 'rb') as f:
+        return f.read()
+
+# Load the salt (generate it if it doesn't exist)
+fixed_salt = load_salt()
 
 def generate_secure_key():
     """Generate and store a secure key for encryption."""

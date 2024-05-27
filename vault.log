@@ -1,317 +1,310 @@
-2024-05-19 22:14:08,374 - INFO - Logging initialized
-2024-05-19 22:14:11,253 - INFO - Logging initialized
-2024-05-19 22:18:36,087 - INFO - Logging initialized
-2024-05-19 22:18:38,704 - INFO - Logging initialized
-2024-05-19 22:21:09,895 - INFO - Logging initialized
-2024-05-19 22:21:12,487 - INFO - Logging initialized
-2024-05-19 22:21:16,059 - INFO - Logging initialized
-2024-05-19 22:21:50,398 - INFO - Logging initialized
-2024-05-19 22:22:53,380 - INFO - Logging initialized
-2024-05-19 22:22:55,700 - INFO - Logging initialized
-2024-05-19 22:24:44,112 - INFO - Logging initialized
-2024-05-19 22:24:46,910 - INFO - Logging initialized
-2024-05-19 22:30:10,942 - INFO - Logging initialized
-2024-05-19 22:30:15,374 - INFO - Logging initialized
-2024-05-19 22:30:52,014 - INFO - Logging initialized
-2024-05-19 22:37:03,217 - INFO - Logging initialized
-2024-05-19 22:37:06,197 - INFO - Logging initialized
-2024-05-19 22:37:27,783 - INFO - Logging initialized
-2024-05-19 22:37:33,309 - INFO - Logging initialized
-2024-05-21 23:14:51,051 - INFO - Logging initialized
-2024-05-21 23:14:56,780 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:14:56,780 - DEBUG - Stored new key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:14:56,780 - INFO - Loaded key with KDF
-2024-05-21 23:14:56,780 - INFO - Running periodic key rotation
-2024-05-21 23:14:56,780 - INFO - Periodic task thread started: True
-2024-05-21 23:16:10,641 - INFO - Logging initialized
-2024-05-21 23:16:21,211 - INFO - Logging initialized
-2024-05-21 23:16:25,990 - INFO - Logging initialized
-2024-05-21 23:16:50,977 - INFO - Logging initialized
-2024-05-21 23:17:00,715 - INFO - Logging initialized
-2024-05-21 23:17:00,838 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:17:00,839 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:17:00,839 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:17:00,839 - INFO - Loaded key with KDF
-2024-05-21 23:17:00,839 - INFO - Cipher reloaded with KDF
-2024-05-21 23:17:18,798 - INFO - Logging initialized
-2024-05-21 23:28:27,419 - INFO - Logging initialized
-2024-05-21 23:28:32,171 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:28:32,171 - DEBUG - Stored new key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:28:32,171 - INFO - Loaded key with KDF
-2024-05-21 23:28:32,172 - INFO - Running periodic key rotation
-2024-05-21 23:28:32,172 - INFO - Periodic task thread started: True
-2024-05-21 23:28:51,281 - INFO - Logging initialized
-2024-05-21 23:28:51,396 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:28:51,396 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:28:51,396 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:28:51,396 - INFO - Loaded key with KDF
-2024-05-21 23:28:51,396 - INFO - Cipher reloaded with KDF
-2024-05-21 23:28:55,642 - INFO - Logging initialized
-2024-05-21 23:28:55,759 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:28:55,759 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:28:55,759 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:28:55,759 - INFO - Loaded key with KDF
-2024-05-21 23:28:55,759 - INFO - Cipher reloaded with KDF
-2024-05-21 23:29:13,190 - INFO - Logging initialized
-2024-05-21 23:29:18,732 - INFO - Logging initialized
-2024-05-21 23:29:18,848 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:29:18,848 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:29:18,848 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-21 23:29:18,848 - INFO - Loaded key with KDF
-2024-05-21 23:29:18,848 - INFO - Cipher reloaded with KDF
-2024-05-23 10:52:41,404 - INFO - Logging initialized
-2024-05-23 10:52:46,268 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:52:46,268 - DEBUG - Stored new key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:52:46,268 - INFO - Loaded key with KDF
-2024-05-23 10:52:46,268 - INFO - Running periodic key rotation
-2024-05-23 10:52:46,268 - INFO - Periodic task thread started: True
-2024-05-23 10:52:46,268 - INFO - Re-encryption completed for directory: /Users/chris/.password_manager/data
-2024-05-23 10:52:46,268 - INFO - Completed periodic key rotation
-2024-05-23 10:52:46,300 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:52:46,300 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:52:46,300 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:52:46,300 - INFO - Loaded key with KDF
-2024-05-23 10:52:46,300 - INFO - Cipher reloaded with KDF
-2024-05-23 10:52:55,495 - INFO - Logging initialized
-2024-05-23 10:52:55,577 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:52:55,577 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:52:55,577 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:52:55,577 - INFO - Loaded key with KDF
-2024-05-23 10:52:55,577 - INFO - Cipher reloaded with KDF
-2024-05-23 10:52:57,525 - INFO - Logging initialized
-2024-05-23 10:52:57,603 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:52:57,603 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:52:57,603 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:52:57,603 - INFO - Loaded key with KDF
-2024-05-23 10:52:57,603 - INFO - Cipher reloaded with KDF
-2024-05-23 10:53:01,604 - INFO - Logging initialized
-2024-05-23 10:53:01,684 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:53:01,684 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:53:01,684 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:53:01,684 - INFO - Loaded key with KDF
-2024-05-23 10:53:01,684 - INFO - Cipher reloaded with KDF
-2024-05-23 10:53:18,266 - INFO - Logging initialized
-2024-05-23 10:53:18,344 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:53:18,344 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:53:18,344 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:53:18,344 - INFO - Loaded key with KDF
-2024-05-23 10:53:18,344 - INFO - Cipher reloaded with KDF
-2024-05-23 10:53:32,891 - INFO - Logging initialized
-2024-05-23 10:53:38,933 - INFO - Logging initialized
-2024-05-23 10:53:39,011 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:53:39,011 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:53:39,011 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:53:39,011 - INFO - Loaded key with KDF
-2024-05-23 10:53:39,011 - INFO - Cipher reloaded with KDF
-2024-05-23 10:54:33,378 - INFO - Logging initialized
-2024-05-23 10:54:33,456 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:54:33,456 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:54:33,456 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:54:33,456 - INFO - Loaded key with KDF
-2024-05-23 10:54:33,456 - INFO - Cipher reloaded with KDF
-2024-05-23 10:54:38,106 - INFO - Logging initialized
-2024-05-23 10:58:24,981 - INFO - Logging initialized
-2024-05-23 10:58:28,801 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:58:28,801 - DEBUG - Stored new key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:58:28,801 - INFO - Loaded key with KDF
-2024-05-23 10:58:28,801 - INFO - Running periodic key rotation
-2024-05-23 10:58:28,801 - INFO - Periodic task thread started: True
-2024-05-23 10:58:28,801 - INFO - Re-encryption completed for directory: /Users/chris/.password_manager/data
-2024-05-23 10:58:34,736 - INFO - Logging initialized
-2024-05-23 10:58:34,814 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:58:34,814 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:58:34,814 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:58:34,814 - INFO - Loaded key with KDF
-2024-05-23 10:58:34,814 - INFO - Cipher reloaded with KDF
-2024-05-23 10:58:46,839 - INFO - Logging initialized
-2024-05-23 10:58:46,917 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:58:46,917 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:58:46,917 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:58:46,917 - INFO - Loaded key with KDF
-2024-05-23 10:58:46,917 - INFO - Cipher reloaded with KDF
-2024-05-23 10:58:53,872 - INFO - Logging initialized
-2024-05-23 10:59:02,125 - INFO - Logging initialized
-2024-05-23 10:59:02,202 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:59:02,202 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:59:02,202 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:59:02,202 - INFO - Loaded key with KDF
-2024-05-23 10:59:02,202 - INFO - Cipher reloaded with KDF
-2024-05-23 10:59:06,669 - INFO - Logging initialized
-2024-05-23 10:59:06,747 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:59:06,747 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:59:06,747 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:59:06,747 - INFO - Loaded key with KDF
-2024-05-23 10:59:06,747 - INFO - Cipher reloaded with KDF
-2024-05-23 10:59:15,021 - INFO - Logging initialized
-2024-05-23 10:59:15,099 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:59:15,099 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:59:15,099 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:59:15,099 - INFO - Loaded key with KDF
-2024-05-23 10:59:15,099 - INFO - Cipher reloaded with KDF
-2024-05-23 10:59:21,737 - INFO - Logging initialized
-2024-05-23 10:59:29,012 - INFO - Logging initialized
-2024-05-23 10:59:29,088 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:59:29,088 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:59:29,088 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
-2024-05-23 10:59:29,088 - INFO - Loaded key with KDF
-2024-05-23 10:59:29,088 - INFO - Cipher reloaded with KDF
-2024-05-23 11:00:53,560 - INFO - Logging initialized
-2024-05-23 11:00:58,064 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:00:58,064 - DEBUG - Stored new key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:00:58,064 - INFO - Loaded key with KDF
-2024-05-23 11:00:58,064 - INFO - Running periodic key rotation
-2024-05-23 11:00:58,064 - INFO - Periodic task thread started: True
-2024-05-23 11:01:02,495 - INFO - Logging initialized
-2024-05-23 11:01:08,258 - INFO - Logging initialized
-2024-05-23 11:01:08,337 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:01:08,337 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:01:08,337 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:01:08,337 - INFO - Loaded key with KDF
-2024-05-23 11:01:08,337 - INFO - Cipher reloaded with KDF
-2024-05-23 11:01:13,054 - INFO - Logging initialized
-2024-05-23 11:01:13,135 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:01:13,135 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:01:13,135 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:01:13,135 - INFO - Loaded key with KDF
-2024-05-23 11:01:13,135 - INFO - Cipher reloaded with KDF
-2024-05-23 11:01:18,141 - INFO - Logging initialized
-2024-05-23 11:01:18,218 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:01:18,218 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:01:18,219 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:01:18,219 - INFO - Loaded key with KDF
-2024-05-23 11:01:18,219 - INFO - Cipher reloaded with KDF
-2024-05-23 11:02:04,620 - INFO - Logging initialized
-2024-05-23 11:02:04,698 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:04,698 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:04,698 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:04,698 - INFO - Loaded key with KDF
-2024-05-23 11:02:04,698 - INFO - Cipher reloaded with KDF
-2024-05-23 11:02:12,035 - INFO - Logging initialized
-2024-05-23 11:02:12,116 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:12,116 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:12,116 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:12,116 - INFO - Loaded key with KDF
-2024-05-23 11:02:12,116 - INFO - Cipher reloaded with KDF
-2024-05-23 11:02:19,923 - INFO - Logging initialized
-2024-05-23 11:02:20,003 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:20,003 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:20,003 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:20,003 - INFO - Loaded key with KDF
-2024-05-23 11:02:20,003 - INFO - Cipher reloaded with KDF
-2024-05-23 11:02:23,617 - INFO - Logging initialized
-2024-05-23 11:02:23,695 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:23,695 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:23,695 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:23,695 - INFO - Loaded key with KDF
-2024-05-23 11:02:23,695 - INFO - Cipher reloaded with KDF
-2024-05-23 11:02:27,017 - INFO - Logging initialized
-2024-05-23 11:02:27,095 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:27,096 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:27,096 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:27,096 - INFO - Loaded key with KDF
-2024-05-23 11:02:27,096 - INFO - Cipher reloaded with KDF
-2024-05-23 11:02:38,026 - INFO - Logging initialized
-2024-05-23 11:02:38,105 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:38,106 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:38,106 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:38,106 - INFO - Loaded key with KDF
-2024-05-23 11:02:38,106 - INFO - Cipher reloaded with KDF
-2024-05-23 11:02:50,372 - INFO - Logging initialized
-2024-05-23 11:02:50,450 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:50,450 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:50,450 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:02:50,450 - INFO - Loaded key with KDF
-2024-05-23 11:02:50,450 - INFO - Cipher reloaded with KDF
-2024-05-23 11:03:04,355 - INFO - Logging initialized
-2024-05-23 11:03:04,434 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:04,434 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:04,434 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:04,434 - INFO - Loaded key with KDF
-2024-05-23 11:03:04,434 - INFO - Cipher reloaded with KDF
-2024-05-23 11:03:15,831 - INFO - Logging initialized
-2024-05-23 11:03:15,911 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:15,911 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:15,911 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:15,911 - INFO - Loaded key with KDF
-2024-05-23 11:03:15,911 - INFO - Cipher reloaded with KDF
-2024-05-23 11:03:26,603 - INFO - Logging initialized
-2024-05-23 11:03:26,683 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:26,683 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:26,683 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:26,683 - INFO - Loaded key with KDF
-2024-05-23 11:03:26,683 - INFO - Cipher reloaded with KDF
-2024-05-23 11:03:36,170 - INFO - Logging initialized
-2024-05-23 11:03:36,247 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:36,248 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:36,248 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:36,248 - INFO - Loaded key with KDF
-2024-05-23 11:03:36,248 - INFO - Cipher reloaded with KDF
-2024-05-23 11:03:45,924 - INFO - Logging initialized
-2024-05-23 11:03:46,001 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:46,001 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:46,001 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:03:46,001 - INFO - Loaded key with KDF
-2024-05-23 11:03:46,001 - INFO - Cipher reloaded with KDF
-2024-05-23 11:04:34,190 - INFO - Logging initialized
-2024-05-23 11:04:34,267 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:04:34,267 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:04:34,267 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:04:34,267 - INFO - Loaded key with KDF
-2024-05-23 11:04:34,267 - INFO - Cipher reloaded with KDF
-2024-05-23 11:04:37,043 - INFO - Logging initialized
-2024-05-23 11:04:37,122 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:04:37,122 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:04:37,122 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:04:37,122 - INFO - Loaded key with KDF
-2024-05-23 11:04:37,122 - INFO - Cipher reloaded with KDF
-2024-05-23 11:04:45,039 - INFO - Logging initialized
-2024-05-23 11:04:45,117 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:04:45,117 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:04:45,117 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:04:45,117 - INFO - Loaded key with KDF
-2024-05-23 11:04:45,117 - INFO - Cipher reloaded with KDF
-2024-05-23 11:04:57,283 - INFO - Logging initialized
-2024-05-23 11:04:57,359 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:04:57,359 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:04:57,359 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:04:57,359 - INFO - Loaded key with KDF
-2024-05-23 11:04:57,359 - INFO - Cipher reloaded with KDF
-2024-05-23 11:06:24,466 - INFO - Logging initialized
-2024-05-23 11:06:26,922 - INFO - Logging initialized
-2024-05-23 11:06:30,653 - INFO - Logging initialized
-2024-05-23 11:06:30,730 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:06:30,730 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:06:30,730 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:06:30,730 - INFO - Loaded key with KDF
-2024-05-23 11:06:30,730 - INFO - Cipher reloaded with KDF
-2024-05-23 11:06:30,732 - INFO - Re-encryption completed for directory: /Users/chris/.password_manager/data
-2024-05-23 11:06:37,352 - INFO - Logging initialized
-2024-05-23 11:06:37,429 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:06:37,429 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:06:37,429 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:06:37,429 - INFO - Loaded key with KDF
-2024-05-23 11:06:37,429 - INFO - Cipher reloaded with KDF
-2024-05-23 11:06:51,521 - INFO - Logging initialized
-2024-05-23 11:06:51,599 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:06:51,599 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:06:51,599 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:06:51,599 - INFO - Loaded key with KDF
-2024-05-23 11:06:51,599 - INFO - Cipher reloaded with KDF
-2024-05-23 11:06:54,392 - INFO - Logging initialized
-2024-05-23 11:06:54,469 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:06:54,469 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:06:54,469 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:06:54,469 - INFO - Loaded key with KDF
-2024-05-23 11:06:54,469 - INFO - Cipher reloaded with KDF
-2024-05-23 11:07:04,114 - INFO - Logging initialized
-2024-05-23 11:07:04,195 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:07:04,195 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:07:04,195 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:07:04,195 - INFO - Loaded key with KDF
-2024-05-23 11:07:04,195 - INFO - Cipher reloaded with KDF
-2024-05-23 11:07:16,771 - INFO - Logging initialized
-2024-05-23 11:07:16,849 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:07:16,849 - DEBUG - Stored key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:07:16,849 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
-2024-05-23 11:07:16,849 - INFO - Loaded key with KDF
-2024-05-23 11:07:16,849 - INFO - Cipher reloaded with KDF
+2024-05-24 21:53:13,589 - INFO - Logging initialized
+2024-05-24 21:53:25,171 - INFO - Logging initialized
+2024-05-24 21:58:41,105 - INFO - Logging initialized
+2024-05-24 21:58:43,356 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-24 21:58:43,404 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-24 21:58:43,404 - DEBUG - Stored new key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-24 21:58:43,404 - INFO - Loaded key with KDF
+2024-05-24 21:58:49,107 - INFO - Logging initialized
+2024-05-24 21:58:55,247 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-24 21:58:55,294 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-24 21:58:55,294 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-24 21:58:55,294 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-24 21:58:55,294 - INFO - Loaded key with KDF
+2024-05-24 21:58:55,295 - INFO - Running periodic key rotation
+2024-05-24 21:58:55,295 - INFO - Periodic task thread started: True
+2024-05-25 09:35:02,165 - INFO - Logging initialized
+2024-05-25 09:35:04,540 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 09:35:04,589 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 09:35:04,589 - DEBUG - Stored new key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 09:35:04,589 - INFO - Loaded key with KDF
+2024-05-25 09:35:07,556 - INFO - Logging initialized
+2024-05-25 09:42:42,023 - INFO - Logging initialized
+2024-05-25 09:49:20,023 - INFO - Logging initialized
+2024-05-25 10:08:20,030 - INFO - Logging initialized
+2024-05-25 10:11:48,224 - INFO - Logging initialized
+2024-05-25 10:20:53,649 - INFO - Logging initialized
+2024-05-25 11:06:33,248 - INFO - Logging initialized
+2024-05-25 11:13:56,938 - INFO - Logging initialized
+2024-05-25 11:13:59,098 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:13:59,098 - DEBUG - Stored new key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:13:59,098 - INFO - Loaded key with KDF
+2024-05-25 11:14:01,441 - INFO - Logging initialized
+2024-05-25 11:16:38,463 - INFO - Logging initialized
+2024-05-25 11:16:41,010 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:16:41,011 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:16:41,011 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:16:41,011 - INFO - Loaded key with KDF
+2024-05-25 11:16:42,722 - INFO - Logging initialized
+2024-05-25 11:16:44,860 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:16:44,860 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:16:44,860 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:16:44,860 - INFO - Loaded key with KDF
+2024-05-25 11:20:40,631 - INFO - Logging initialized
+2024-05-25 11:20:43,172 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:20:43,172 - DEBUG - Stored new key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:20:43,172 - INFO - Loaded key with KDF
+2024-05-25 11:20:48,563 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:20:48,564 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:20:48,564 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:20:48,564 - INFO - Loaded key with KDF
+2024-05-25 11:20:48,564 - INFO - Running periodic key rotation
+2024-05-25 11:20:48,564 - INFO - Periodic task thread started: True
+2024-05-25 11:20:50,423 - INFO - Logging initialized
+2024-05-25 11:20:52,606 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:20:52,606 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:20:52,606 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:20:52,606 - INFO - Loaded key with KDF
+2024-05-25 11:20:57,800 - INFO - Logging initialized
+2024-05-25 11:21:43,278 - INFO - Logging initialized
+2024-05-25 11:21:45,470 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:21:45,471 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:21:45,471 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:21:45,471 - INFO - Loaded key with KDF
+2024-05-25 11:21:49,971 - INFO - Logging initialized
+2024-05-25 11:21:52,738 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:21:52,739 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:21:52,739 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:21:52,739 - INFO - Loaded key with KDF
+2024-05-25 11:29:52,622 - INFO - Logging initialized
+2024-05-25 11:29:54,615 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:29:54,616 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:29:54,616 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:29:54,616 - INFO - Loaded key with KDF
+2024-05-25 11:29:55,746 - INFO - Logging initialized
+2024-05-25 11:29:58,009 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:29:58,009 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:29:58,009 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:29:58,009 - INFO - Loaded key with KDF
+2024-05-25 11:30:00,808 - INFO - Logging initialized
+2024-05-25 11:30:03,101 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:30:03,101 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:30:03,101 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:30:03,101 - INFO - Loaded key with KDF
+2024-05-25 11:59:33,234 - INFO - Logging initialized
+2024-05-25 11:59:35,301 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:59:35,302 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:59:35,302 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:59:35,302 - INFO - Loaded key with KDF
+2024-05-25 11:59:36,835 - INFO - Logging initialized
+2024-05-25 11:59:39,131 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:59:39,131 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:59:39,131 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:59:39,131 - INFO - Loaded key with KDF
+2024-05-25 11:59:42,349 - INFO - Logging initialized
+2024-05-25 11:59:44,486 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:59:44,486 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:59:44,486 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 11:59:44,486 - INFO - Loaded key with KDF
+2024-05-25 12:06:40,315 - INFO - Logging initialized
+2024-05-25 12:06:42,780 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 12:06:42,780 - DEBUG - Stored new key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 12:06:42,781 - INFO - Loaded key with KDF
+2024-05-25 12:06:44,254 - INFO - Logging initialized
+2024-05-25 12:06:48,072 - INFO - Logging initialized
+2024-05-25 12:06:50,171 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 12:06:50,171 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 12:06:50,171 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-25 12:06:50,171 - INFO - Loaded key with KDF
+2024-05-25 12:20:23,290 - INFO - Logging initialized
+2024-05-25 12:20:44,655 - INFO - Logging initialized
+2024-05-25 12:21:17,156 - INFO - Logging initialized
+2024-05-25 12:21:59,524 - INFO - Logging initialized
+2024-05-25 12:22:38,841 - INFO - Logging initialized
+2024-05-25 12:23:57,578 - INFO - Logging initialized
+2024-05-25 12:24:48,154 - INFO - Logging initialized
+2024-05-25 12:25:11,703 - INFO - Logging initialized
+2024-05-26 13:01:39,435 - INFO - Logging initialized
+2024-05-26 13:02:35,017 - INFO - Logging initialized
+2024-05-26 13:08:53,628 - INFO - Logging initialized
+2024-05-26 13:09:56,504 - INFO - Logging initialized
+2024-05-26 13:09:58,613 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:09:58,613 - DEBUG - Stored new key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:09:58,613 - INFO - Loaded key with KDF
+2024-05-26 13:10:00,052 - INFO - Logging initialized
+2024-05-26 13:10:07,118 - INFO - Logging initialized
+2024-05-26 13:12:02,401 - INFO - Logging initialized
+2024-05-26 13:12:04,519 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:12:04,519 - DEBUG - Stored new key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:12:04,519 - INFO - Loaded key with KDF
+2024-05-26 13:12:06,155 - INFO - Logging initialized
+2024-05-26 13:12:07,999 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:12:07,999 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:12:07,999 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:12:07,999 - INFO - Loaded key with KDF
+2024-05-26 13:14:23,389 - INFO - Logging initialized
+2024-05-26 13:14:26,903 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:14:26,906 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:14:26,907 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:14:26,907 - INFO - Loaded key with KDF
+2024-05-26 13:14:28,604 - INFO - Logging initialized
+2024-05-26 13:14:30,542 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:14:30,542 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:14:30,542 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:14:30,542 - INFO - Loaded key with KDF
+2024-05-26 13:14:34,045 - INFO - Logging initialized
+2024-05-26 13:14:36,510 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:14:36,510 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:14:36,510 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:14:36,510 - INFO - Loaded key with KDF
+2024-05-26 13:14:40,509 - INFO - Logging initialized
+2024-05-26 13:14:42,505 - INFO - Logging initialized
+2024-05-26 13:17:59,849 - INFO - Logging initialized
+2024-05-26 13:18:02,509 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:18:02,509 - DEBUG - Stored new key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:18:02,509 - INFO - Loaded key with KDF
+2024-05-26 13:18:04,148 - INFO - Logging initialized
+2024-05-26 13:45:30,641 - INFO - Logging initialized
+2024-05-26 13:45:32,717 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:45:32,717 - INFO - Master password stored in memory.
+2024-05-26 13:45:32,764 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:45:32,764 - DEBUG - Stored new key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:45:32,764 - INFO - Loaded key with KDF
+2024-05-26 13:45:34,620 - INFO - Logging initialized
+2024-05-26 13:45:36,849 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:45:36,850 - INFO - Master password stored in memory.
+2024-05-26 13:45:36,896 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:45:36,896 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:45:36,896 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:45:36,896 - INFO - Loaded key with KDF
+2024-05-26 13:45:38,726 - INFO - Logging initialized
+2024-05-26 13:45:41,380 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:45:41,381 - INFO - Master password stored in memory.
+2024-05-26 13:45:41,427 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:45:41,427 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:45:41,427 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 13:45:41,427 - INFO - Loaded key with KDF
+2024-05-26 14:01:05,961 - INFO - Logging initialized
+2024-05-26 14:01:08,240 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:01:08,240 - INFO - Master password stored in memory.
+2024-05-26 14:01:08,286 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:01:08,287 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:01:08,287 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:01:08,287 - INFO - Loaded key with KDF
+2024-05-26 14:01:09,378 - INFO - Logging initialized
+2024-05-26 14:01:11,711 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:01:11,711 - INFO - Master password stored in memory.
+2024-05-26 14:01:11,758 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:01:11,758 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:01:11,758 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:01:11,758 - INFO - Loaded key with KDF
+2024-05-26 14:08:21,780 - INFO - Logging initialized
+2024-05-26 14:08:23,791 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:08:23,791 - INFO - Master password stored in memory.
+2024-05-26 14:08:53,485 - INFO - Logging initialized
+2024-05-26 14:08:55,500 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:08:55,500 - INFO - Master password stored in memory.
+2024-05-26 14:08:55,546 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:08:55,547 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:08:55,547 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:08:55,547 - INFO - Loaded key with KDF
+2024-05-26 14:08:57,607 - INFO - Logging initialized
+2024-05-26 14:09:00,663 - DEBUG - Derived key: b'N-NwufGMcF7-e8ri6Zv8HpXqtgsbLgn0HZkNdqsoqcs='
+2024-05-26 14:09:00,663 - INFO - Master password stored in memory.
+2024-05-26 14:09:00,710 - DEBUG - Derived key: b'N-NwufGMcF7-e8ri6Zv8HpXqtgsbLgn0HZkNdqsoqcs='
+2024-05-26 14:09:00,711 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:09:00,711 - DEBUG - Derived key: b'N-NwufGMcF7-e8ri6Zv8HpXqtgsbLgn0HZkNdqsoqcs='
+2024-05-26 14:09:00,711 - ERROR - Derived key does not match stored key
+2024-05-26 14:09:05,112 - INFO - Logging initialized
+2024-05-26 14:09:06,067 - DEBUG - Derived key: b'N-NwufGMcF7-e8ri6Zv8HpXqtgsbLgn0HZkNdqsoqcs='
+2024-05-26 14:09:06,068 - INFO - Master password stored in memory.
+2024-05-26 14:09:06,115 - DEBUG - Derived key: b'N-NwufGMcF7-e8ri6Zv8HpXqtgsbLgn0HZkNdqsoqcs='
+2024-05-26 14:09:06,115 - DEBUG - Stored key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:09:06,115 - DEBUG - Derived key: b'N-NwufGMcF7-e8ri6Zv8HpXqtgsbLgn0HZkNdqsoqcs='
+2024-05-26 14:09:06,115 - ERROR - Derived key does not match stored key
+2024-05-26 14:14:23,857 - INFO - Logging initialized
+2024-05-26 14:14:26,305 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:14:26,305 - INFO - Master password stored in memory.
+2024-05-26 14:14:26,352 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:14:26,352 - DEBUG - Stored new key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 14:14:26,352 - INFO - Loaded key with KDF
+2024-05-26 14:14:27,693 - INFO - Logging initialized
+2024-05-26 16:08:02,297 - INFO - Logging initialized
+2024-05-26 16:08:04,562 - INFO - Master password stored in encrypted form on disk.
+2024-05-26 16:08:04,609 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:08:04,609 - INFO - Master password stored.
+2024-05-26 16:08:08,362 - INFO - Logging initialized
+2024-05-26 16:08:08,480 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:08:11,877 - INFO - Logging initialized
+2024-05-26 16:11:18,920 - INFO - Logging initialized
+2024-05-26 16:11:32,242 - INFO - Logging initialized
+2024-05-26 16:11:34,289 - INFO - Master password stored in encrypted form on disk.
+2024-05-26 16:11:34,336 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:11:34,336 - INFO - Master password stored.
+2024-05-26 16:11:35,573 - INFO - Logging initialized
+2024-05-26 16:11:38,657 - INFO - Logging initialized
+2024-05-26 16:11:38,772 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:11:45,201 - INFO - Logging initialized
+2024-05-26 16:11:50,091 - INFO - Logging initialized
+2024-05-26 16:11:50,209 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:11:52,343 - INFO - Logging initialized
+2024-05-26 16:11:52,459 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:11:57,135 - INFO - Logging initialized
+2024-05-26 16:11:59,646 - INFO - Logging initialized
+2024-05-26 16:11:59,760 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:17:22,986 - INFO - Logging initialized
+2024-05-26 16:17:25,387 - INFO - Master password stored in encrypted form on disk.
+2024-05-26 16:17:25,435 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:17:25,435 - INFO - Master password stored.
+2024-05-26 16:17:28,308 - INFO - Logging initialized
+2024-05-26 16:17:28,425 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:17:57,272 - INFO - Logging initialized
+2024-05-26 16:17:57,390 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:19:38,730 - INFO - Logging initialized
+2024-05-26 16:19:40,908 - INFO - Master password stored in encrypted form on disk.
+2024-05-26 16:19:40,957 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:19:40,957 - INFO - Master password stored.
+2024-05-26 16:19:43,481 - INFO - Logging initialized
+2024-05-26 16:19:43,598 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:19:43,645 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:23:03,817 - INFO - Logging initialized
+2024-05-26 16:23:03,954 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:23:06,695 - INFO - Logging initialized
+2024-05-26 16:23:06,812 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:26:21,522 - INFO - Logging initialized
+2024-05-26 16:26:23,660 - INFO - Master password stored in encrypted form on disk.
+2024-05-26 16:26:23,708 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:26:23,708 - INFO - Master password stored.
+2024-05-26 16:26:26,274 - INFO - Logging initialized
+2024-05-26 16:26:30,026 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:26:36,319 - INFO - Logging initialized
+2024-05-26 16:26:36,436 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:28:16,749 - INFO - Logging initialized
+2024-05-26 16:28:19,033 - INFO - Master password stored in encrypted form on disk.
+2024-05-26 16:28:19,082 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:28:19,082 - INFO - Master password stored.
+2024-05-26 16:29:18,777 - INFO - Logging initialized
+2024-05-26 16:29:20,965 - INFO - Master password stored in encrypted form on disk.
+2024-05-26 16:29:21,014 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:29:21,014 - INFO - Master password stored.
+2024-05-26 16:29:28,550 - INFO - Logging initialized
+2024-05-26 16:29:28,671 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:29:33,766 - INFO - Logging initialized
+2024-05-26 16:29:33,886 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:35:05,115 - INFO - Logging initialized
+2024-05-26 16:35:05,249 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:35:05,250 - INFO - Re-encryption completed for directory: /Users/christopherjiang/.password_manager/data
+2024-05-26 16:37:48,112 - INFO - Logging initialized
+2024-05-26 16:38:00,226 - INFO - Logging initialized
+2024-05-26 16:38:02,283 - INFO - Master password stored in encrypted form on disk.
+2024-05-26 16:38:02,332 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:38:02,332 - INFO - Master password stored.
+2024-05-26 16:38:03,690 - INFO - Logging initialized
+2024-05-26 16:38:45,316 - INFO - Logging initialized
+2024-05-26 16:38:47,228 - INFO - Master password stored in encrypted form on disk.
+2024-05-26 16:38:47,276 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:38:47,276 - INFO - Master password stored.
+2024-05-26 16:38:55,650 - INFO - Logging initialized
+2024-05-26 16:38:55,767 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 16:39:00,040 - INFO - Logging initialized
+2024-05-26 16:39:00,157 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-26 17:09:11,021 - INFO - Logging initialized
+2024-05-26 17:09:13,231 - INFO - Master password stored in encrypted form on disk.
+2024-05-26 17:09:13,279 - DEBUG - Derived key: b'm-MZcHACFHcqXbFDyVrqqRHC8BbPKkZrJJGW0FxzJK4='
+2024-05-26 17:09:13,279 - INFO - Master password stored.
+2024-05-26 17:09:14,700 - INFO - Logging initialized
+2024-05-26 17:10:15,091 - INFO - Logging initialized
+2024-05-26 17:10:17,193 - INFO - Master password stored in encrypted form on disk.
+2024-05-26 17:10:17,242 - DEBUG - Derived key: b'wWDUVtvqolmetpUXEw2IiVkbgm9h3TZslAwdMZ7g8jo='
+2024-05-26 17:10:17,242 - INFO - Master password stored.
+2024-05-26 17:10:26,729 - INFO - Logging initialized
