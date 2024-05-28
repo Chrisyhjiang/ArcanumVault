@@ -1,10 +1,12 @@
 import os
+import getpass
 import click
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 from pathlib import Path
+import pam
 import time
 import uuid
 from ctypes import CDLL, c_void_p, c_long
@@ -23,7 +25,6 @@ MASTER_PASSWORD_FILE = Path.home() / ".password_manager" / "master_password.enc"
 SESSION_FILE = Path.home() / ".password_manager" / ".session"
 CURRENT_DIRECTORY_FILE = Path.home() / ".password_manager" / ".current_directory"
 SALT_FILE = Path.home() / ".password_manager" / "salt"
-KEY_FILE = Path.home() / ".password_manager" / "key.key"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 SESSION_TIMEOUT = 3600  # Set session timeout to 3600 seconds (1 hour)
 
@@ -193,14 +194,20 @@ def authenticate_fingerprint_mac():
         return False
 
 def authenticate_user():
+    pam_auth = pam.pam()
+    
+    try:
+        username = os.getlogin()
+        if username == 'root':
+            username = getpass.getuser()
+    except Exception:
+        username = getpass.getuser()
+
     choice = click.prompt('Choose authentication method: [P]assword/[F]ingerprint', type=str).lower()
 
     if choice == 'p':
-        # Load the master password from the encrypted file
-        stored_master_password = decrypt_master_password()
-        # Prompt the user for the master password
-        entered_master_password = click.prompt('Master Password', hide_input=True)
-        if stored_master_password != entered_master_password:
+        password = click.prompt('System Password', hide_input=True)
+        if not pam_auth.authenticate(username, password, service='login'):
             click.echo("Authentication failed.")
             exit(1)
         else:
@@ -223,9 +230,6 @@ def authenticate_user():
         click.echo("Invalid choice.")
         exit(1)
 
-    # Start the periodic task after successful authentication
-    start_periodic_task()
-
 def ensure_authenticated():
     """Ensure the user is authenticated before proceeding."""
     if not is_authenticated():
@@ -244,49 +248,6 @@ def is_authenticated():
         os.remove(SESSION_FILE)
         return False
     return True
-
-def rotate_key_for_directory(directory):
-    """Rotate key for all password files in the given directory."""
-    global cipher
-    if cipher is None:
-        load_master_password()  # Ensure the cipher is initialized
-    for root, _, files in os.walk(directory):
-        for file in files:
-            if file.endswith('.pass'):
-                file_path = Path(root) / file
-                with open(file_path, 'r') as f:
-                    lines = f.read().splitlines()
-                    if len(lines) < 4:
-                        click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
-                        continue
-                    description = lines[1]
-                    user_id = lines[2]
-                    encrypted_password = lines[3].encode()
-                    try:
-                        decrypted_password = cipher.decrypt(encrypted_password)
-                    except InvalidToken:
-                        click.echo(f"Failed to decrypt {file_path.stem}. Skipping.")
-                        continue
-                    new_encrypted_password = cipher.encrypt(decrypted_password)
-                    password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
-                    with open(file_path, 'w') as f:
-                        f.write(password_entry)
-    logging.info(f"Re-encryption completed for directory: {directory}")
-
-def rotate_key_periodically():
-    while True:
-        with key_lock:
-            rotate_key_for_directory(DATA_DIR)
-            logging.info("Periodic key rotation completed.")
-        time.sleep(1800)  # Rotate key every 30 minutes
-
-def start_periodic_task():
-    global periodic_task_started
-    if not periodic_task_started:
-        periodic_task_thread = threading.Thread(target=rotate_key_periodically, daemon=True)
-        periodic_task_thread.start()
-        logging.info("Periodic key rotation task started.")
-        periodic_task_started = True
 
 @click.group(invoke_without_command=True)
 @click.pass_context
@@ -316,6 +277,7 @@ def set_master_password(ctx):
 @click.argument('folder', required=False)
 @click.pass_context
 def insert(ctx, folder):
+    master_password = load_master_password()
     ensure_authenticated()
     with key_lock:
         vault_id = str(uuid.uuid4())
@@ -365,6 +327,7 @@ def show_passwords(directory, indent_level=0):
 @click.argument('domain', required=False)
 @click.pass_context
 def show(ctx, domain):
+    master_password = load_master_password()
     ensure_authenticated()
     with key_lock:
         current_dir = load_current_directory()
@@ -403,6 +366,7 @@ def show(ctx, domain):
 @click.argument('folder_vault_id', nargs=-1)
 @click.pass_context
 def remove(ctx, folder_vault_id):
+    master_password = load_master_password()
     ensure_authenticated()
     if len(folder_vault_id) == 0:
         click.echo("No vault ID provided.")
@@ -440,6 +404,7 @@ def remove(ctx, folder_vault_id):
 @click.argument('length', type=int)
 @click.pass_context
 def generate(ctx, domain, length, folder):
+    master_password = load_master_password()
     ensure_authenticated()
     with key_lock:
         import random
@@ -459,6 +424,7 @@ def generate(ctx, domain, length, folder):
 @vault.command()
 @click.pass_context
 def reformat(ctx):
+    master_password = load_master_password()
     ensure_authenticated()
     with key_lock:
         current_dir = load_current_directory()
@@ -482,6 +448,7 @@ def reformat(ctx):
 @click.argument('folder_vault_id', nargs=-1)
 @click.pass_context
 def update(ctx, folder_vault_id):
+    master_password = load_master_password()
     ensure_authenticated()
     if len(folder_vault_id) == 0:
         click.echo("No vault ID provided.")
@@ -532,16 +499,44 @@ def install_completion():
 @vault.command(name="rotate-key")
 @click.pass_context
 def rotate_key(ctx):
+    master_password = load_master_password()
     ensure_authenticated()
     with key_lock:
         click.echo("Re-encrypting all passwords with the new key...")
         rotate_key_for_directory(DATA_DIR)
         click.echo("Key rotation completed successfully.")
 
+def rotate_key_for_directory(directory):
+    """Rotate key for all password files in the given directory."""
+    global cipher
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith('.pass'):
+                file_path = Path(root) / file
+                with open(file_path, 'r') as f:
+                    lines = f.read().splitlines()
+                    if len(lines) < 4:
+                        click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
+                        continue
+                    description = lines[1]
+                    user_id = lines[2]
+                    encrypted_password = lines[3].encode()
+                    try:
+                        decrypted_password = cipher.decrypt(encrypted_password)
+                    except InvalidToken:
+                        click.echo(f"Failed to decrypt {file_path.stem}. Skipping.")
+                        continue
+                    new_encrypted_password = cipher.encrypt(decrypted_password)
+                    password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
+                    with open(file_path, 'w') as f:
+                        f.write(password_entry)
+    logging.info(f"Re-encryption completed for directory: {directory}")
+
 @vault.command(name="delete-all")
 @click.pass_context
 def delete_all(ctx):
     """Delete all password entries and directories."""
+    master_password = load_master_password()
     ensure_authenticated()
     with key_lock:
         for root, dirs, files in os.walk(DATA_DIR, topdown=False):
@@ -556,6 +551,7 @@ def delete_all(ctx):
 @click.pass_context
 def search(ctx, description):
     """Search for passwords by description."""
+    master_password = load_master_password()
     ensure_authenticated()
     results = []
 
@@ -595,6 +591,7 @@ def search(ctx, description):
 @click.pass_context
 def create_folder(ctx, folder_name):
     """Create a new directory for storing passwords."""
+    master_password = load_master_password()
     ensure_authenticated()
     current_dir = load_current_directory()
     new_folder = current_dir / folder_name
@@ -606,6 +603,7 @@ def create_folder(ctx, folder_name):
 @click.pass_context
 def goto(ctx, directory):
     """Change the current directory for storing passwords."""
+    master_password = load_master_password()
     ensure_authenticated()
     current_dir = load_current_directory()
     
@@ -626,14 +624,10 @@ def goto(ctx, directory):
 @click.pass_context
 def pwd(ctx):
     """Print the current directory."""
+    master_password = load_master_password()
     ensure_authenticated()
     current_dir = load_current_directory()
     click.echo(f"Current directory: {current_dir}")
 
-def run_vault():
-    vault()
-
-# Start the main thread for the Click CLI application
 if __name__ == "__main__":
-    main_thread = threading.Thread(target=run_vault)
-    main_thread.start()
+    vault()
