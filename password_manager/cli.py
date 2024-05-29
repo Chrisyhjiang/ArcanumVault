@@ -663,7 +663,12 @@ def pwd(ctx):
     master_password = load_master_password()
     ensure_authenticated()
     current_dir = load_current_directory()
-    click.echo(f"Current directory: {current_dir}")
+    if current_dir == DATA_DIR:
+        click.echo("Current directory: data")
+    else:
+        relative_path = current_dir.relative_to(DATA_DIR)
+        click.echo(f"Current directory: data/{relative_path}")
+
 
 if __name__ == "__main__":
     vault()
