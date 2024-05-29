@@ -315,3 +315,124 @@
 2024-05-23 11:07:16,849 - DEBUG - Derived key: b'4grA8fDJrhkFBlybZbXTU2HocEZ-_OkNAEhXsVhfEkA='
 2024-05-23 11:07:16,849 - INFO - Loaded key with KDF
 2024-05-23 11:07:16,849 - INFO - Cipher reloaded with KDF
+2024-05-28 19:15:08,917 - INFO - Logging initialized
+2024-05-28 19:15:11,220 - INFO - Master password stored in encrypted form on disk.
+2024-05-28 19:15:11,269 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-28 19:15:11,269 - INFO - Master password stored.
+2024-05-28 19:15:18,086 - INFO - Logging initialized
+2024-05-28 19:15:29,181 - INFO - Logging initialized
+2024-05-28 19:15:29,300 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-28 19:15:33,455 - INFO - Logging initialized
+2024-05-28 19:15:33,573 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-28 19:15:35,731 - INFO - Logging initialized
+2024-05-28 19:15:35,848 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-28 19:15:35,848 - INFO - Re-encryption completed for directory: /Users/christopherjiang/.password_manager/data
+2024-05-28 19:15:37,940 - INFO - Logging initialized
+2024-05-28 19:15:38,058 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-28 19:17:18,754 - INFO - Logging initialized
+2024-05-28 19:17:26,134 - INFO - Logging initialized
+2024-05-28 19:19:05,539 - INFO - Logging initialized
+2024-05-28 19:19:08,304 - INFO - Master password stored in encrypted form on disk.
+2024-05-28 19:19:08,352 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-28 19:19:08,353 - INFO - Master password stored.
+2024-05-28 19:19:35,803 - INFO - Logging initialized
+2024-05-28 19:19:40,353 - INFO - Master password stored in encrypted form on disk.
+2024-05-28 19:19:40,402 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-28 19:19:40,402 - INFO - Master password stored.
+2024-05-28 19:19:49,173 - INFO - Logging initialized
+2024-05-28 19:19:49,291 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-28 19:19:53,796 - INFO - Logging initialized
+2024-05-28 19:19:53,920 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-28 19:34:48,419 - INFO - Logging initialized
+2024-05-28 19:34:50,883 - INFO - Master password stored in encrypted form on disk.
+2024-05-28 19:34:50,933 - DEBUG - Derived key: b'ohoRH3ZAaClSanIbVeHhinshI8iXyvA-jK87kM_jxCg='
+2024-05-28 19:34:50,933 - INFO - Master password stored.
+2024-05-28 19:34:58,973 - INFO - Logging initialized
+2024-05-28 19:37:09,357 - INFO - Logging initialized
+2024-05-28 19:37:49,090 - INFO - Logging initialized
+2024-05-28 19:37:51,437 - INFO - Master password stored in encrypted form on disk.
+2024-05-28 19:37:51,485 - DEBUG - Derived key: b'C9Bz_pgP7Dx6ydV_4TXKfnuVNWkNqf4djyHaYTWehGw='
+2024-05-28 19:37:51,485 - INFO - Master password stored.
+2024-05-28 19:38:04,110 - INFO - Logging initialized
+2024-05-28 19:38:12,464 - INFO - Logging initialized
+2024-05-28 19:38:12,590 - DEBUG - Derived key: b'C9Bz_pgP7Dx6ydV_4TXKfnuVNWkNqf4djyHaYTWehGw='
+2024-05-28 19:38:18,806 - INFO - Logging initialized
+2024-05-28 19:38:18,948 - DEBUG - Derived key: b'C9Bz_pgP7Dx6ydV_4TXKfnuVNWkNqf4djyHaYTWehGw='
+2024-05-28 19:38:18,949 - INFO - Re-encryption completed for directory: /Users/christopherjiang/.password_manager/data
+2024-05-28 19:38:20,951 - INFO - Logging initialized
+2024-05-28 19:38:21,070 - DEBUG - Derived key: b'C9Bz_pgP7Dx6ydV_4TXKfnuVNWkNqf4djyHaYTWehGw='
+2024-05-28 19:38:29,862 - INFO - Logging initialized
+2024-05-28 19:38:33,322 - INFO - Master password stored in encrypted form on disk.
+2024-05-28 19:38:33,370 - DEBUG - Derived key: b't9HZ2Qz3RUOTauesAz_2WpFyrd-z2xodRCECAqWIml4='
+2024-05-28 19:38:33,370 - INFO - Master password stored.
+2024-05-28 19:38:35,328 - INFO - Logging initialized
+2024-05-28 19:38:35,464 - DEBUG - Derived key: b't9HZ2Qz3RUOTauesAz_2WpFyrd-z2xodRCECAqWIml4='
+2024-05-28 19:38:42,936 - INFO - Logging initialized
+2024-05-28 19:38:45,613 - INFO - Master password stored in encrypted form on disk.
+2024-05-28 19:38:45,662 - DEBUG - Derived key: b'C9Bz_pgP7Dx6ydV_4TXKfnuVNWkNqf4djyHaYTWehGw='
+2024-05-28 19:38:45,662 - INFO - Master password stored.
+2024-05-28 19:38:47,594 - INFO - Logging initialized
+2024-05-28 19:38:47,711 - DEBUG - Derived key: b'C9Bz_pgP7Dx6ydV_4TXKfnuVNWkNqf4djyHaYTWehGw='
+2024-05-28 19:41:44,784 - INFO - Logging initialized
+2024-05-28 19:41:47,523 - INFO - Logging initialized
+2024-05-28 19:41:47,653 - DEBUG - Derived key: b'C9Bz_pgP7Dx6ydV_4TXKfnuVNWkNqf4djyHaYTWehGw='
+2024-05-28 19:41:50,212 - INFO - Logging initialized
+2024-05-28 19:41:50,435 - DEBUG - Derived key: b'C9Bz_pgP7Dx6ydV_4TXKfnuVNWkNqf4djyHaYTWehGw='
+2024-05-28 19:41:53,755 - INFO - Logging initialized
+2024-05-28 19:41:53,880 - DEBUG - Derived key: b'C9Bz_pgP7Dx6ydV_4TXKfnuVNWkNqf4djyHaYTWehGw='
+2024-05-28 19:41:56,717 - INFO - Logging initialized
+2024-05-28 19:51:16,676 - INFO - Logging initialized
+2024-05-28 19:52:38,967 - INFO - Logging initialized
+2024-05-28 19:53:34,309 - INFO - Logging initialized
+2024-05-28 19:53:36,546 - INFO - Master password stored in encrypted form on disk.
+2024-05-28 19:53:36,594 - DEBUG - Derived key: b'l-0a1CepnFpXrC-f1y3asITU9jzdCUS6aHJkBYl57U8='
+2024-05-28 19:53:36,594 - INFO - Re-encryption with new master password completed.
+2024-05-28 19:53:47,647 - INFO - Logging initialized
+2024-05-28 19:53:49,900 - INFO - Master password stored in encrypted form on disk.
+2024-05-28 19:53:49,954 - DEBUG - Derived key: b'f5N4UvgCykaxUwhky8Y7jAadqo9LVcjdePMClEH9imw='
+2024-05-28 19:53:49,954 - INFO - Re-encryption with new master password completed.
+2024-05-28 19:53:53,936 - INFO - Logging initialized
+2024-05-28 19:53:54,077 - DEBUG - Derived key: b'f5N4UvgCykaxUwhky8Y7jAadqo9LVcjdePMClEH9imw='
+2024-05-28 19:53:54,078 - INFO - Re-encryption completed for directory: /Users/christopherjiang/.password_manager/data
+2024-05-28 19:53:57,062 - INFO - Logging initialized
+2024-05-28 19:53:57,201 - DEBUG - Derived key: b'f5N4UvgCykaxUwhky8Y7jAadqo9LVcjdePMClEH9imw='
+2024-05-28 19:54:03,376 - INFO - Logging initialized
+2024-05-28 19:54:03,512 - DEBUG - Derived key: b'f5N4UvgCykaxUwhky8Y7jAadqo9LVcjdePMClEH9imw='
+2024-05-28 19:54:03,513 - INFO - Re-encryption completed for directory: /Users/christopherjiang/.password_manager/data
+2024-05-28 19:54:08,210 - INFO - Logging initialized
+2024-05-28 19:54:11,496 - INFO - Master password stored in encrypted form on disk.
+2024-05-28 19:54:11,544 - DEBUG - Derived key: b'l-0a1CepnFpXrC-f1y3asITU9jzdCUS6aHJkBYl57U8='
+2024-05-28 19:55:19,305 - INFO - Logging initialized
+2024-05-28 19:55:22,587 - INFO - Logging initialized
+2024-05-28 19:55:22,708 - DEBUG - Derived key: b'l-0a1CepnFpXrC-f1y3asITU9jzdCUS6aHJkBYl57U8='
+2024-05-28 19:55:27,705 - INFO - Logging initialized
+2024-05-28 19:55:27,831 - DEBUG - Derived key: b'l-0a1CepnFpXrC-f1y3asITU9jzdCUS6aHJkBYl57U8='
+2024-05-28 19:55:30,674 - INFO - Logging initialized
+2024-05-28 19:55:30,793 - DEBUG - Derived key: b'l-0a1CepnFpXrC-f1y3asITU9jzdCUS6aHJkBYl57U8='
+2024-05-28 19:55:34,165 - INFO - Logging initialized
+2024-05-28 19:55:37,750 - INFO - Logging initialized
+2024-05-28 19:55:42,074 - INFO - Logging initialized
+2024-05-28 19:55:47,063 - INFO - Logging initialized
+2024-05-28 19:56:33,600 - INFO - Logging initialized
+2024-05-28 19:56:39,962 - INFO - Logging initialized
+2024-05-28 19:56:50,494 - INFO - Logging initialized
+2024-05-28 20:00:38,393 - INFO - Logging initialized
+2024-05-28 20:00:41,010 - INFO - Master password stored in encrypted form on disk.
+2024-05-28 20:00:41,010 - INFO - Master password stored.
+2024-05-28 20:00:49,385 - INFO - Logging initialized
+2024-05-28 20:00:51,438 - DEBUG - Derived key: b'5BpMXWrxkfza2nLI-01z244jzw0lY86w6mTXncMQcxs='
+2024-05-28 20:00:51,438 - INFO - Master password stored in encrypted form on disk.
+2024-05-28 20:00:51,485 - DEBUG - Derived key: b'YGwVsWS9oCB4kZSNtiM5MCshigOSdCl7lNdEEdga15A='
+2024-05-28 20:00:51,485 - INFO - Re-encryption with new master password completed.
+2024-05-28 20:00:51,485 - INFO - Master password stored.
+2024-05-28 20:00:55,373 - INFO - Logging initialized
+2024-05-28 20:01:00,620 - INFO - Logging initialized
+2024-05-28 20:01:00,745 - DEBUG - Derived key: b'YGwVsWS9oCB4kZSNtiM5MCshigOSdCl7lNdEEdga15A='
+2024-05-28 20:01:06,990 - INFO - Logging initialized
+2024-05-28 20:01:11,050 - DEBUG - Derived key: b'YGwVsWS9oCB4kZSNtiM5MCshigOSdCl7lNdEEdga15A='
+2024-05-28 20:01:11,051 - INFO - Master password stored in encrypted form on disk.
+2024-05-28 20:01:11,097 - DEBUG - Derived key: b'5BpMXWrxkfza2nLI-01z244jzw0lY86w6mTXncMQcxs='
+2024-05-28 20:01:11,098 - INFO - Re-encryption with new master password completed.
+2024-05-28 20:01:11,098 - INFO - Master password stored.
+2024-05-28 20:01:13,590 - INFO - Logging initialized
+2024-05-28 20:01:13,715 - DEBUG - Derived key: b'5BpMXWrxkfza2nLI-01z244jzw0lY86w6mTXncMQcxs='
