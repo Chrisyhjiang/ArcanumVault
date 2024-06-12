@@ -1,0 +1,177 @@
+2024-05-29 11:16:36,587 - INFO - Logging initialized
+2024-05-29 11:16:39,066 - INFO - Master password stored in encrypted form on disk.
+2024-05-29 11:16:39,066 - INFO - Master password stored.
+2024-05-29 11:16:46,578 - INFO - Logging initialized
+2024-05-29 11:16:46,664 - DEBUG - Derived key: b'JE016NObQkjrm913yxg2MastMTJyGHQCezw2W9efpnI='
+2024-05-29 11:16:50,783 - INFO - Logging initialized
+2024-05-29 11:16:50,869 - DEBUG - Derived key: b'JE016NObQkjrm913yxg2MastMTJyGHQCezw2W9efpnI='
+2024-05-29 11:16:55,083 - INFO - Logging initialized
+2024-05-29 11:16:55,169 - DEBUG - Derived key: b'JE016NObQkjrm913yxg2MastMTJyGHQCezw2W9efpnI='
+2024-05-29 11:16:55,170 - INFO - Re-encryption completed for directory: /Users/chris/.password_manager/data
+2024-05-29 11:16:57,165 - INFO - Logging initialized
+2024-05-29 11:16:57,248 - DEBUG - Derived key: b'JE016NObQkjrm913yxg2MastMTJyGHQCezw2W9efpnI='
+2024-05-29 11:17:02,396 - INFO - Logging initialized
+2024-05-29 11:17:08,087 - INFO - Logging initialized
+2024-05-29 11:17:11,716 - DEBUG - Derived key: b'JE016NObQkjrm913yxg2MastMTJyGHQCezw2W9efpnI='
+2024-05-29 11:17:11,716 - INFO - Master password stored in encrypted form on disk.
+2024-05-29 11:17:11,750 - DEBUG - Derived key: b'MzogalP_UqLKX3sCb3mny_mCSeqKmQXcfMB2Pe609Js='
+2024-05-29 11:17:11,750 - INFO - Re-encryption with new master password completed.
+2024-05-29 11:17:11,750 - INFO - Master password stored.
+2024-05-29 11:17:24,940 - INFO - Logging initialized
+2024-05-29 11:17:25,025 - DEBUG - Derived key: b'MzogalP_UqLKX3sCb3mny_mCSeqKmQXcfMB2Pe609Js='
+2024-05-29 13:36:34,410 - INFO - Logging initialized
+2024-05-29 13:38:23,359 - INFO - Logging initialized
+2024-05-29 13:38:25,715 - INFO - Master password stored in encrypted form on disk.
+2024-05-29 13:38:25,715 - INFO - Master password stored.
+2024-05-29 13:38:40,920 - INFO - Logging initialized
+2024-05-29 13:38:42,934 - INFO - Logging initialized
+2024-05-29 13:38:52,360 - INFO - Logging initialized
+2024-05-29 13:38:54,432 - INFO - Logging initialized
+2024-05-29 13:38:54,518 - DEBUG - Derived key: b'Q-uIP4LNuYCp-V63a8UlfgNa7L5YYZ-TL-HeXRb8dYo='
+2024-05-29 13:39:06,895 - INFO - Logging initialized
+2024-05-29 13:39:06,982 - DEBUG - Derived key: b'Q-uIP4LNuYCp-V63a8UlfgNa7L5YYZ-TL-HeXRb8dYo='
+2024-05-29 13:39:11,748 - INFO - Logging initialized
+2024-05-29 13:39:11,833 - DEBUG - Derived key: b'Q-uIP4LNuYCp-V63a8UlfgNa7L5YYZ-TL-HeXRb8dYo='
+2024-05-29 13:39:15,291 - INFO - Logging initialized
+2024-05-29 13:39:15,377 - DEBUG - Derived key: b'Q-uIP4LNuYCp-V63a8UlfgNa7L5YYZ-TL-HeXRb8dYo='
+2024-05-29 13:40:07,165 - INFO - Logging initialized
+2024-05-29 13:40:08,835 - INFO - Logging initialized
+2024-05-29 13:40:11,882 - INFO - Logging initialized
+2024-05-29 13:41:10,077 - INFO - Logging initialized
+2024-05-29 13:41:12,926 - INFO - Master password stored in encrypted form on disk.
+2024-05-29 13:41:12,926 - INFO - Master password stored.
+2024-05-29 13:41:22,787 - INFO - Logging initialized
+2024-05-29 13:41:27,247 - INFO - Logging initialized
+2024-05-29 13:41:36,826 - INFO - Logging initialized
+2024-05-29 13:42:03,544 - INFO - Logging initialized
+2024-05-29 13:42:03,632 - DEBUG - Derived key: b'KQd8do8SpwQ2dMs30P2f0T-2ZIDfvRW4JDFQmizdyJQ='
+2024-05-29 13:42:06,664 - INFO - Logging initialized
+2024-05-29 13:42:06,749 - DEBUG - Derived key: b'KQd8do8SpwQ2dMs30P2f0T-2ZIDfvRW4JDFQmizdyJQ='
+2024-05-29 13:43:55,532 - INFO - Logging initialized
+2024-05-29 13:43:58,167 - INFO - Master password stored in encrypted form on disk.
+2024-05-29 13:43:58,167 - INFO - Master password stored.
+2024-05-29 13:44:06,213 - INFO - Logging initialized
+2024-05-29 13:44:06,298 - DEBUG - Derived key: b'iVQkvC85wGZqMX0d7I_eAKCCcO0vXUmeNPe0jYisWcU='
+2024-05-29 13:44:11,762 - INFO - Logging initialized
+2024-05-29 13:44:11,848 - DEBUG - Derived key: b'iVQkvC85wGZqMX0d7I_eAKCCcO0vXUmeNPe0jYisWcU='
+2024-05-29 13:44:17,573 - INFO - Logging initialized
+2024-05-29 13:44:17,661 - DEBUG - Derived key: b'iVQkvC85wGZqMX0d7I_eAKCCcO0vXUmeNPe0jYisWcU='
+2024-05-29 13:44:19,920 - INFO - Logging initialized
+2024-05-29 13:44:20,004 - DEBUG - Derived key: b'iVQkvC85wGZqMX0d7I_eAKCCcO0vXUmeNPe0jYisWcU='
+2024-05-29 13:44:23,527 - INFO - Logging initialized
+2024-05-29 13:44:23,613 - DEBUG - Derived key: b'iVQkvC85wGZqMX0d7I_eAKCCcO0vXUmeNPe0jYisWcU='
+2024-06-03 10:34:23,851 - INFO - Logging initialized
+2024-06-03 10:34:26,179 - INFO - Master password stored in encrypted form on disk.
+2024-06-03 10:34:26,179 - INFO - Master password stored.
+2024-06-03 10:34:32,411 - INFO - Logging initialized
+2024-06-03 10:34:32,682 - INFO - Logging initialized
+2024-06-03 10:34:42,474 - INFO - Logging initialized
+2024-06-03 10:34:46,701 - INFO - Logging initialized
+2024-06-03 10:34:46,825 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 10:56:07,244 - INFO - Logging initialized
+2024-06-03 10:56:07,377 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 10:56:07,763 - INFO - Logging initialized
+2024-06-03 10:56:07,885 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 10:56:24,525 - INFO - Logging initialized
+2024-06-03 11:00:26,060 - INFO - Logging initialized
+2024-06-03 11:00:26,186 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:00:26,804 - INFO - Logging initialized
+2024-06-03 11:00:26,959 - INFO - Logging initialized
+2024-06-03 11:00:27,083 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:00:32,320 - INFO - Logging initialized
+2024-06-03 11:00:32,444 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:00:33,692 - INFO - Logging initialized
+2024-06-03 11:00:33,839 - INFO - Logging initialized
+2024-06-03 11:00:33,994 - INFO - Logging initialized
+2024-06-03 11:00:34,117 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:48:37,839 - INFO - Logging initialized
+2024-06-03 11:48:37,973 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:49:15,756 - INFO - Logging initialized
+2024-06-03 11:49:15,880 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:49:21,630 - INFO - Logging initialized
+2024-06-03 11:49:30,401 - INFO - Logging initialized
+2024-06-03 11:49:32,260 - INFO - Logging initialized
+2024-06-03 11:49:32,384 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:49:38,678 - INFO - Logging initialized
+2024-06-03 11:49:38,799 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:49:45,476 - INFO - Logging initialized
+2024-06-03 11:49:45,598 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:49:54,223 - INFO - Logging initialized
+2024-06-03 11:49:54,348 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:54:29,419 - INFO - Logging initialized
+2024-06-03 11:54:29,543 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:54:30,605 - INFO - Logging initialized
+2024-06-03 11:54:30,727 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:54:31,812 - INFO - Logging initialized
+2024-06-03 11:54:31,935 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:58:45,506 - INFO - Logging initialized
+2024-06-03 11:58:45,631 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:58:46,274 - INFO - Logging initialized
+2024-06-03 11:58:46,398 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 11:58:46,584 - INFO - Logging initialized
+2024-06-03 11:58:46,708 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 12:01:18,703 - INFO - Logging initialized
+2024-06-03 12:01:18,829 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 12:08:24,134 - INFO - Logging initialized
+2024-06-03 12:08:24,297 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-03 12:08:37,253 - INFO - Logging initialized
+2024-06-03 12:08:37,375 - DEBUG - Derived key: b'RoaKvXcp8a_JEFd1h4lgmQ7ZtjLrfxlqFCVngc3zS5E='
+2024-06-12 13:27:13,817 - INFO - Logging initialized
+2024-06-12 13:35:13,709 - INFO - Master password stored in encrypted form on disk.
+2024-06-12 13:35:13,709 - INFO - Master password stored.
+2024-06-12 13:39:51,380 - INFO - Logging initialized
+2024-06-12 13:39:52,954 - INFO - Master password stored in encrypted form on disk.
+2024-06-12 13:39:52,954 - INFO - Master password stored.
+2024-06-12 13:40:06,286 - INFO - Logging initialized
+2024-06-12 13:41:48,003 - INFO - Logging initialized
+2024-06-12 13:41:50,259 - INFO - Master password stored in encrypted form on disk.
+2024-06-12 13:41:50,259 - INFO - Master password stored.
+2024-06-12 13:41:58,783 - INFO - Logging initialized
+2024-06-12 13:43:23,061 - INFO - Logging initialized
+2024-06-12 13:43:25,009 - INFO - Master password stored in encrypted form on disk.
+2024-06-12 13:43:25,009 - INFO - Master password stored.
+2024-06-12 13:43:30,926 - INFO - Logging initialized
+2024-06-12 13:43:31,053 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:43:41,649 - INFO - Logging initialized
+2024-06-12 13:44:02,378 - INFO - Logging initialized
+2024-06-12 13:44:53,278 - INFO - Logging initialized
+2024-06-12 13:44:53,424 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:44:59,950 - INFO - Logging initialized
+2024-06-12 13:45:00,074 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:45:03,467 - INFO - Logging initialized
+2024-06-12 13:45:03,590 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:45:11,907 - INFO - Logging initialized
+2024-06-12 13:45:12,032 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:47:02,915 - INFO - Logging initialized
+2024-06-12 13:47:05,451 - INFO - Logging initialized
+2024-06-12 13:47:05,574 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:47:07,107 - INFO - Logging initialized
+2024-06-12 13:47:07,230 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:47:11,679 - INFO - Logging initialized
+2024-06-12 13:47:11,802 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:47:18,402 - INFO - Logging initialized
+2024-06-12 13:47:18,526 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:47:22,647 - INFO - Logging initialized
+2024-06-12 13:47:22,770 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:50:50,872 - INFO - Logging initialized
+2024-06-12 13:50:51,002 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:50:55,747 - INFO - Logging initialized
+2024-06-12 13:50:55,870 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:50:59,099 - INFO - Logging initialized
+2024-06-12 13:50:59,224 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:52:17,856 - INFO - Logging initialized
+2024-06-12 13:52:17,983 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:52:21,649 - INFO - Logging initialized
+2024-06-12 13:52:21,775 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:52:35,807 - INFO - Logging initialized
+2024-06-12 13:52:35,935 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:52:38,456 - INFO - Logging initialized
+2024-06-12 13:52:42,149 - INFO - Logging initialized
+2024-06-12 13:52:42,274 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:52:46,803 - INFO - Logging initialized
+2024-06-12 13:52:46,928 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:55:07,550 - INFO - Logging initialized
+2024-06-12 13:55:09,988 - INFO - Logging initialized
+2024-06-12 13:55:10,114 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='
+2024-06-12 13:55:13,410 - INFO - Logging initialized
+2024-06-12 13:55:13,559 - DEBUG - Derived key: b'L4rkxQgFUfxhZtcO7lCaMaOXsDxlMSx0CLmQfvt0K8M='

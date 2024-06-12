@@ -12,7 +12,8 @@ setup(
         'pyobjc-framework-Cocoa',
         'pyobjc-framework-Quartz',
         'pyobjc-framework-LocalAuthentication',
-        'six'
+        'six',
+        'pexpect'
         # Add other dependencies if needed
     ],
     entry_points='''
