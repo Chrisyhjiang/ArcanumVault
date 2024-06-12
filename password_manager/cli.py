@@ -360,40 +360,20 @@ def show_passwords(directory, indent_level=0):
                 click.echo(f"{' ' * (indent_level * 2)}No password found for {file_path.stem}")
 
 @vault.command()
-@click.argument('domain', required=False)
+@click.argument('folder', required=False)
 @click.pass_context
-def show(ctx, domain):
+def show(ctx, folder):
     master_password = load_master_password()
     ensure_authenticated()
     with key_lock:
         current_dir = load_current_directory()
-        if domain:
-            file_path = current_dir / f"{domain}.pass"
-            if file_path.exists():
-                try:
-                    with open(file_path, 'r') as f:
-                        lines = f.read().splitlines()
-                        if len(lines) < 4:
-                            click.echo(f"Invalid password file format for {domain}.")
-                            return
-                        vault_id = lines[0]
-                        description = lines[1]
-                        user_id = lines[2]
-                        encrypted_password = lines[3].encode()
-                        try:
-                            user_password = cipher.decrypt(encrypted_password).decode()
-                        except InvalidToken:
-                            click.echo(f"Failed to decrypt password for {domain}.")
-                            return
-                    click.echo(f"Domain: {domain}")
-                    click.echo(f"  Description: {description}")
-                    click.echo(f"  User ID: {user_id}")
-                    click.echo(f"  Password: {user_password}")
-                    click.echo(f"  Vault ID: {vault_id}")
-                except FileNotFoundError:
-                    click.echo(f"No password found for {domain}")
+        if folder:
+            target_dir = current_dir / folder
+            if target_dir.exists() and target_dir.is_dir():
+                click.echo(f"{target_dir.name}/")  # Print the target directory
+                show_passwords(target_dir, indent_level=1)  # Indent subfolders and files
             else:
-                click.echo(f"No password found for {domain}")
+                click.echo(f"Folder '{folder}' does not exist.")
         else:
             click.echo(f"{current_dir.name}/")  # Print the current directory
             show_passwords(current_dir, indent_level=1)  # Indent subfolders and files
@@ -435,16 +415,26 @@ def remove(ctx, folder_vault_id):
             click.echo(f"No entry found with vault ID {vault_id}")
 
 @vault.command()
-@click.argument('folder', required=False)
-@click.argument('domain')
-@click.argument('length', type=int)
+@click.argument('folder_vault_id', nargs=-1)
 @click.pass_context
-def generate(ctx, domain, length, folder):
+def generate(ctx, folder_vault_id):
     master_password = load_master_password()
     ensure_authenticated()
     with key_lock:
         import random
         import string
+        if len(folder_vault_id) < 2:
+            click.echo("You must provide at least a domain and length.")
+            return
+        elif len(folder_vault_id) == 2:
+            folder = None
+            domain = folder_vault_id[0]
+            length = int(folder_vault_id[1])
+        else:
+            folder = folder_vault_id[0]
+            domain = folder_vault_id[1]
+            length = int(folder_vault_id[2])
+
         generated_password = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=length))
         encrypted_password = cipher.encrypt(generated_password.encode())
         vault_id = str(uuid.uuid4())
@@ -529,8 +519,7 @@ def update(ctx, folder_vault_id):
 
 @vault.command(name="install-completion")
 def install_completion():
-    click.echo('To activate completion for this session, source the script:')
-    click.echo('source ~/.password_manager_completion/vault_completion.zsh')
+    click.echo('source ./vault_completion.zsh')
 
 @vault.command(name="rotate-key")
 @click.pass_context
@@ -622,6 +611,11 @@ def search(ctx, description):
     else:
         click.echo("No matching descriptions found.")
 
+
+
+"""
+creates the desiganted folder at the specified location in the file system.
+"""
 @vault.command(name="create-folder")
 @click.argument('folder_name')
 @click.pass_context
@@ -633,6 +627,10 @@ def create_folder(ctx, folder_name):
     new_folder = current_dir / folder_name
     new_folder.mkdir(parents=True, exist_ok=True)
     click.echo(f"Folder '{folder_name}' created.")
+
+"""
+navigates to the specified directory provided in the command line
+"""
 
 @vault.command(name="goto")
 @click.argument('directory')
@@ -656,6 +654,10 @@ def goto(ctx, directory):
     else:
         click.echo(f"Directory '{directory}' does not exist.")
 
+
+"""
+prints the current directory of the password manager instance
+"""
 @vault.command()
 @click.pass_context
 def pwd(ctx):
