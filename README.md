@@ -42,7 +42,7 @@ This Password Manager is a secure CLI-based tool designed to store and manage pa
 
    ```bash
    git clone https://github.com/yourusername/password-manager.git
-   cd password-manager
+   cd ArcanumVault
    ```
 
 2. **Install dependencies**:
@@ -52,8 +52,38 @@ This Password Manager is a secure CLI-based tool designed to store and manage pa
    ```
 
 3. **Run the password manager**:
+
    ```bash
    vault
+   ```
+
+4. **Install autocompletion for the CLI**:
+
+   Add the following code to your `.zshrc` file:
+
+   ```bash
+   autoload -U compinit
+   compinit
+   source /Users/chris/Documents/GitHub/ArcanumVault
+
+   _vault() {
+     eval $(env COMMANDLINE="${words[1,$CURRENT]}" _VAULT_COMPLETE=complete-zsh  vault)
+   }
+   if [[ "$(basename -- ${(%):-%x})" != "_vault" ]]; then
+     compdef _vault vault
+   }
+   ```
+
+   Source your `.zshrc` file to apply the changes:
+
+   ```bash
+   source ~/.zshrc
+   ```
+
+   Close and repoen another instance of your terminal. Then, run the following command to get instructions for installing the autocompletion component:
+
+   ```bash
+   vault install-completion
    ```
 
 ## Usage
@@ -62,6 +92,12 @@ This Password Manager is a secure CLI-based tool designed to store and manage pa
 
 ```bash
 vault set-master-password
+```
+
+#### Authentication
+
+```bash
+vault authenticate
 ```
 
 #### Insert Password Entry
@@ -116,4 +152,10 @@ vault create-folder <folder_name>
 
 ```bash
 vault goto <directory>
+```
+
+#### Print Current Directory
+
+```bash
+vault pwd
 ```

@@ -557,61 +557,68 @@ def rotate_key_for_directory(directory):
                         f.write(password_entry)
     logging.info(f"Re-encryption completed for directory: {directory}")
 
+
+"""
+deletes all the password in all entries (used for debugging purposes)
+"""
 @vault.command(name="delete-all")
 @click.pass_context
 def delete_all(ctx):
     """Delete all password entries and directories."""
-    master_password = load_master_password()
-    ensure_authenticated()
-    with key_lock:
-        for root, dirs, files in os.walk(DATA_DIR, topdown=False):
+    master_password = load_master_password()  # Load the master password
+    ensure_authenticated()  # Ensure the user is authenticated
+    with key_lock:  # Acquire the key lock to ensure thread-safe operation
+        for root, dirs, files in os.walk(DATA_DIR, topdown=False):  # Walk the directory tree from the bottom up
             for file in files:
-                os.remove(os.path.join(root, file))
+                os.remove(os.path.join(root, file))  # Remove each file in the directory
             for dir in dirs:
-                os.rmdir(os.path.join(root, dir))
-        click.echo("All password entries and directories have been deleted.")
+                os.rmdir(os.path.join(root, dir))  # Remove each directory in the directory tree
+        click.echo("All password entries and directories have been deleted.")  # Inform the user that all entries and directories have been deleted
 
+"""
+Recursively searches all the password entries based on the provided description. 
+Takes in the description as a necessary argument. 
+"""
 @vault.command()
 @click.argument('description')
 @click.pass_context
 def search(ctx, description):
     """Search for passwords by description."""
-    master_password = load_master_password()
-    ensure_authenticated()
-    results = []
+    master_password = load_master_password()  # Load the master password
+    ensure_authenticated()  # Ensure the user is authenticated
+    results = []  # Initialize an empty list to store search results
 
     def search_passwords(dir_path, description):
-        for file_path in dir_path.glob('*.pass'):
+        """Recursively search for passwords by description in the given directory."""
+        for file_path in dir_path.glob('*.pass'):  # Iterate over all '.pass' files in the directory
             with open(file_path, 'r') as f:
-                lines = f.read().splitlines()
+                lines = f.read().splitlines()  # Read the file and split it into lines
                 if len(lines) < 4:
                     click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
-                    continue
+                    continue  # Skip files that do not have the expected format
                 vault_id = lines[0]
                 desc = lines[1]
                 user_id = lines[2]
                 encrypted_password = lines[3].encode()
-                if description.lower() in desc.lower():
+                if description.lower() in desc.lower():  # Check if the description matches
                     try:
-                        password = cipher.decrypt(encrypted_password).decode()
-                        results.append((file_path.stem, vault_id, desc, user_id, password))
+                        password = cipher.decrypt(encrypted_password).decode()  # Decrypt the password
+                        results.append((file_path.stem, vault_id, desc, user_id, password))  # Add result to the list
                     except InvalidToken:
                         click.echo(f"Failed to decrypt password for {file_path.stem}. Skipping.")
-                        continue
+                        continue  # Skip files that cannot be decrypted
         for sub_dir in dir_path.iterdir():
-            if sub_dir.is_dir():
+            if sub_dir.is_dir():  # If the subdirectory is a directory, recurse into it
                 search_passwords(sub_dir, description)
 
-    current_dir = load_current_directory()
-    search_passwords(current_dir, description)
+    current_dir = load_current_directory()  # Load the current directory
+    search_passwords(current_dir, description)  # Start the search from the current directory
 
     if results:
-        for domain, vault_id, desc, user_id, password in results:
+        for domain, vault_id, desc, user_id, password in results:  # Iterate over the search results
             click.echo(f"\nDomain: {domain}\nVault ID: {vault_id}\nDescription: {desc}\nUser ID: {user_id}\nPassword: {password}\n")
     else:
         click.echo("No matching descriptions found.")
-
-
 
 """
 creates the desiganted folder at the specified location in the file system.
@@ -631,7 +638,6 @@ def create_folder(ctx, folder_name):
 """
 navigates to the specified directory provided in the command line
 """
-
 @vault.command(name="goto")
 @click.argument('directory')
 @click.pass_context
