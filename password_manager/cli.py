@@ -470,23 +470,27 @@ def reformat(ctx):
             elif len(lines) < 3:
                 click.echo(f"Skipping {domain_name}, invalid format.")
 
+"""
+Updates a specific password based on the vault ID. 
+[Folder] <vault_id>
+"""
 @vault.command()
 @click.argument('folder_vault_id', nargs=-1)
 @click.pass_context
 def update(ctx, folder_vault_id):
-    master_password = load_master_password()
-    ensure_authenticated()
-    if len(folder_vault_id) == 0:
+    master_password = load_master_password()  # loads the master password 
+    ensure_authenticated() # ensures authentication
+    if len(folder_vault_id) == 0: # incorrect arguments fail the parsing
         click.echo("No vault ID provided.")
         return
     elif len(folder_vault_id) == 1:
         folder = None
-        vault_id = folder_vault_id[0]
+        vault_id = folder_vault_id[0] # gets the vault ID a
     else:
         folder = folder_vault_id[0]
         vault_id = folder_vault_id[1]
     
-    with key_lock:
+    with key_lock: # safe threading operation
         current_dir = load_current_directory()
         if folder:
             current_dir = current_dir / folder
@@ -517,46 +521,51 @@ def update(ctx, folder_vault_id):
             f.write(password_entry)
         click.echo(f"Updated entry with vault ID {vault_id}.")
 
+"""
+Command to output the instructions to install auto-completion on the set of commmands. 
+"""
 @vault.command(name="install-completion")
 def install_completion():
     click.echo('source ./vault_completion.zsh')
 
+"""
+Re-encrypt passwords (This is already peridoically called every 30 minutes)
+"""
 @vault.command(name="rotate-key")
 @click.pass_context
 def rotate_key(ctx):
     master_password = load_master_password()
     ensure_authenticated()
-    with key_lock:
+    with key_lock: # Acquire the key lock to ensure thread-safe operation doesnt overlap with periodic re-encryption
         click.echo("Re-encrypting all passwords with the new key...")
-        rotate_key_for_directory(DATA_DIR)
+        rotate_key_for_directory(DATA_DIR) # Rotate the key for all password files in the data directory
         click.echo("Key rotation completed successfully.")
 
 def rotate_key_for_directory(directory):
-    """Rotate key for all password files in the given directory."""
-    global cipher
-    for root, _, files in os.walk(directory):
+    """Rotate the key for all password files in the given directory."""
+    global cipher  # Use the global cipher variable for encryption and decryption
+    for root, _, files in os.walk(directory):  # Walk through the directory tree
         for file in files:
-            if file.endswith('.pass'):
-                file_path = Path(root) / file
+            if file.endswith('.pass'):  # Process only files with the '.pass' extension
+                file_path = Path(root) / file  # Construct the full file path
                 with open(file_path, 'r') as f:
-                    lines = f.read().splitlines()
+                    lines = f.read().splitlines()  # Read the file and split it into lines
                     if len(lines) < 4:
                         click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
-                        continue
-                    description = lines[1]
-                    user_id = lines[2]
-                    encrypted_password = lines[3].encode()
+                        continue  # Skip files that do not have the expected format
+                    description = lines[1]  # Extract the description
+                    user_id = lines[2]  # Extract the user ID
+                    encrypted_password = lines[3].encode()  # Extract the encrypted password
                     try:
-                        decrypted_password = cipher.decrypt(encrypted_password)
+                        decrypted_password = cipher.decrypt(encrypted_password)  # Decrypt the password
                     except InvalidToken:
                         click.echo(f"Failed to decrypt {file_path.stem}. Skipping.")
-                        continue
-                    new_encrypted_password = cipher.encrypt(decrypted_password)
-                    password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
+                        continue  # Skip files that cannot be decrypted
+                    new_encrypted_password = cipher.encrypt(decrypted_password)  # Encrypt the password with the new key
+                    password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"  # Construct the new password entry
                     with open(file_path, 'w') as f:
-                        f.write(password_entry)
-    logging.info(f"Re-encryption completed for directory: {directory}")
-
+                        f.write(password_entry)  # Write the new password entry back to the file
+    logging.info(f"Re-encryption completed for directory: {directory}")  # Log the completion of re-encryption for the directory
 
 """
 deletes all the password in all entries (used for debugging purposes)
@@ -577,7 +586,7 @@ def delete_all(ctx):
 
 """
 Recursively searches all the password entries based on the provided description. 
-Takes in the description as a necessary argument. 
+<description>
 """
 @vault.command()
 @click.argument('description')
