@@ -166,12 +166,18 @@ def get_password_file_path(domain, folder=None):
         target_dir = current_dir
     return target_dir / f"{domain}.pass"
 
+"""
+loads the current directory
+"""
 def load_current_directory():
     if CURRENT_DIRECTORY_FILE.exists():
         with open(CURRENT_DIRECTORY_FILE, 'r') as f:
             return Path(f.read().strip())
     return DATA_DIR
 
+"""
+writes to specified directory
+"""
 def save_current_directory(current_directory):
     with open(CURRENT_DIRECTORY_FILE, 'w') as f:
         f.write(str(current_directory))
@@ -418,7 +424,7 @@ def remove(ctx, folder_vault_id):
 @click.argument('folder_vault_id', nargs=-1)
 @click.pass_context
 def generate(ctx, folder_vault_id):
-    master_password = load_master_password()
+    master_password = load_master_password() 
     ensure_authenticated()
     with key_lock:
         import random
@@ -447,6 +453,9 @@ def generate(ctx, folder_vault_id):
             f.write(password_entry)
         click.echo(f"Generated password for {domain} with description, User ID, and vaultID {vault_id}: {generated_password}")
 
+"""
+reformats the password, outdated
+"""
 @vault.command()
 @click.pass_context
 def reformat(ctx):
@@ -637,7 +646,6 @@ creates the desiganted folder at the specified location in the file system.
 @click.pass_context
 def create_folder(ctx, folder_name):
     """Create a new directory for storing passwords."""
-    master_password = load_master_password()
     ensure_authenticated()
     current_dir = load_current_directory()
     new_folder = current_dir / folder_name
@@ -652,7 +660,6 @@ navigates to the specified directory provided in the command line
 @click.pass_context
 def goto(ctx, directory):
     """Change the current directory for storing passwords."""
-    master_password = load_master_password()
     ensure_authenticated()
     current_dir = load_current_directory()
     
@@ -677,7 +684,6 @@ prints the current directory of the password manager instance
 @click.pass_context
 def pwd(ctx):
     """Print the current directory."""
-    master_password = load_master_password()
     ensure_authenticated()
     current_dir = load_current_directory()
     if current_dir == DATA_DIR:
