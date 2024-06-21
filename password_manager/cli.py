@@ -137,8 +137,10 @@ class CipherSingleton:
 
     def refresh_cipher(self):
         with self._lock:
+            old_cipher = self.cipher
             self.cipher = self._create_cipher()
             self._cipher_initialized = True
+            reencrypt_passwords(old_cipher, self.cipher)
 
 # Instantiate the cipher singleton
 cipher_singleton = CipherSingleton()
