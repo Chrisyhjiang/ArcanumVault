@@ -166,12 +166,18 @@ def get_password_file_path(domain, folder=None):
         target_dir = current_dir
     return target_dir / f"{domain}.pass"
 
+"""
+loads the current directory
+"""
 def load_current_directory():
     if CURRENT_DIRECTORY_FILE.exists():
         with open(CURRENT_DIRECTORY_FILE, 'r') as f:
             return Path(f.read().strip())
     return DATA_DIR
 
+"""
+writes to specified directory
+"""
 def save_current_directory(current_directory):
     with open(CURRENT_DIRECTORY_FILE, 'w') as f:
         f.write(str(current_directory))
@@ -418,7 +424,7 @@ def remove(ctx, folder_vault_id):
 @click.argument('folder_vault_id', nargs=-1)
 @click.pass_context
 def generate(ctx, folder_vault_id):
-    master_password = load_master_password()
+    master_password = load_master_password() 
     ensure_authenticated()
     with key_lock:
         import random
@@ -447,6 +453,9 @@ def generate(ctx, folder_vault_id):
             f.write(password_entry)
         click.echo(f"Generated password for {domain} with description, User ID, and vaultID {vault_id}: {generated_password}")
 
+"""
+reformats the password, outdated
+"""
 @vault.command()
 @click.pass_context
 def reformat(ctx):
@@ -470,23 +479,27 @@ def reformat(ctx):
             elif len(lines) < 3:
                 click.echo(f"Skipping {domain_name}, invalid format.")
 
+"""
+Updates a specific password based on the vault ID. 
+[Folder] <vault_id>
+"""
 @vault.command()
 @click.argument('folder_vault_id', nargs=-1)
 @click.pass_context
 def update(ctx, folder_vault_id):
-    master_password = load_master_password()
-    ensure_authenticated()
-    if len(folder_vault_id) == 0:
+    master_password = load_master_password()  # loads the master password 
+    ensure_authenticated() # ensures authentication
+    if len(folder_vault_id) == 0: # incorrect arguments fail the parsing
         click.echo("No vault ID provided.")
         return
     elif len(folder_vault_id) == 1:
         folder = None
-        vault_id = folder_vault_id[0]
+        vault_id = folder_vault_id[0] # gets the vault ID a
     else:
         folder = folder_vault_id[0]
         vault_id = folder_vault_id[1]
     
-    with key_lock:
+    with key_lock: # safe threading operation
         current_dir = load_current_directory()
         if folder:
             current_dir = current_dir / folder
@@ -517,101 +530,113 @@ def update(ctx, folder_vault_id):
             f.write(password_entry)
         click.echo(f"Updated entry with vault ID {vault_id}.")
 
+"""
+Command to output the instructions to install auto-completion on the set of commmands. 
+"""
 @vault.command(name="install-completion")
 def install_completion():
     click.echo('source ./vault_completion.zsh')
 
+"""
+Re-encrypt passwords (This is already peridoically called every 30 minutes)
+"""
 @vault.command(name="rotate-key")
 @click.pass_context
 def rotate_key(ctx):
     master_password = load_master_password()
     ensure_authenticated()
-    with key_lock:
+    with key_lock: # Acquire the key lock to ensure thread-safe operation doesnt overlap with periodic re-encryption
         click.echo("Re-encrypting all passwords with the new key...")
-        rotate_key_for_directory(DATA_DIR)
+        rotate_key_for_directory(DATA_DIR) # Rotate the key for all password files in the data directory
         click.echo("Key rotation completed successfully.")
 
 def rotate_key_for_directory(directory):
-    """Rotate key for all password files in the given directory."""
-    global cipher
-    for root, _, files in os.walk(directory):
+    """Rotate the key for all password files in the given directory."""
+    global cipher  # Use the global cipher variable for encryption and decryption
+    for root, _, files in os.walk(directory):  # Walk through the directory tree
         for file in files:
-            if file.endswith('.pass'):
-                file_path = Path(root) / file
+            if file.endswith('.pass'):  # Process only files with the '.pass' extension
+                file_path = Path(root) / file  # Construct the full file path
                 with open(file_path, 'r') as f:
-                    lines = f.read().splitlines()
+                    lines = f.read().splitlines()  # Read the file and split it into lines
                     if len(lines) < 4:
                         click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
-                        continue
-                    description = lines[1]
-                    user_id = lines[2]
-                    encrypted_password = lines[3].encode()
+                        continue  # Skip files that do not have the expected format
+                    description = lines[1]  # Extract the description
+                    user_id = lines[2]  # Extract the user ID
+                    encrypted_password = lines[3].encode()  # Extract the encrypted password
                     try:
-                        decrypted_password = cipher.decrypt(encrypted_password)
+                        decrypted_password = cipher.decrypt(encrypted_password)  # Decrypt the password
                     except InvalidToken:
                         click.echo(f"Failed to decrypt {file_path.stem}. Skipping.")
-                        continue
-                    new_encrypted_password = cipher.encrypt(decrypted_password)
-                    password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
+                        continue  # Skip files that cannot be decrypted
+                    new_encrypted_password = cipher.encrypt(decrypted_password)  # Encrypt the password with the new key
+                    password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"  # Construct the new password entry
                     with open(file_path, 'w') as f:
-                        f.write(password_entry)
-    logging.info(f"Re-encryption completed for directory: {directory}")
+                        f.write(password_entry)  # Write the new password entry back to the file
+    logging.info(f"Re-encryption completed for directory: {directory}")  # Log the completion of re-encryption for the directory
 
+"""
+deletes all the password in all entries (used for debugging purposes)
+"""
 @vault.command(name="delete-all")
 @click.pass_context
 def delete_all(ctx):
     """Delete all password entries and directories."""
-    master_password = load_master_password()
-    ensure_authenticated()
-    with key_lock:
-        for root, dirs, files in os.walk(DATA_DIR, topdown=False):
+    master_password = load_master_password()  # Load the master password
+    ensure_authenticated()  # Ensure the user is authenticated
+    with key_lock:  # Acquire the key lock to ensure thread-safe operation
+        for root, dirs, files in os.walk(DATA_DIR, topdown=False):  # Walk the directory tree from the bottom up
             for file in files:
-                os.remove(os.path.join(root, file))
+                os.remove(os.path.join(root, file))  # Remove each file in the directory
             for dir in dirs:
-                os.rmdir(os.path.join(root, dir))
-        click.echo("All password entries and directories have been deleted.")
+                os.rmdir(os.path.join(root, dir))  # Remove each directory in the directory tree
+        click.echo("All password entries and directories have been deleted.")  # Inform the user that all entries and directories have been deleted
 
+"""
+Recursively searches all the password entries based on the provided description. 
+<description>
+"""
 @vault.command()
 @click.argument('description')
 @click.pass_context
 def search(ctx, description):
     """Search for passwords by description."""
-    master_password = load_master_password()
-    ensure_authenticated()
-    results = []
+    master_password = load_master_password()  # Load the master password
+    ensure_authenticated()  # Ensure the user is authenticated
+    results = []  # Initialize an empty list to store search results
 
     def search_passwords(dir_path, description):
-        for file_path in dir_path.glob('*.pass'):
+        """Recursively search for passwords by description in the given directory."""
+        for file_path in dir_path.glob('*.pass'):  # Iterate over all '.pass' files in the directory
             with open(file_path, 'r') as f:
-                lines = f.read().splitlines()
+                lines = f.read().splitlines()  # Read the file and split it into lines
                 if len(lines) < 4:
                     click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
-                    continue
+                    continue  # Skip files that do not have the expected format
                 vault_id = lines[0]
                 desc = lines[1]
                 user_id = lines[2]
                 encrypted_password = lines[3].encode()
-                if description.lower() in desc.lower():
+                if description.lower() in desc.lower():  # Check if the description matches
                     try:
-                        password = cipher.decrypt(encrypted_password).decode()
-                        results.append((file_path.stem, vault_id, desc, user_id, password))
+                        password = cipher.decrypt(encrypted_password).decode()  # Decrypt the password
+                        results.append((file_path.stem, vault_id, desc, user_id, password))  # Add result to the list
                     except InvalidToken:
                         click.echo(f"Failed to decrypt password for {file_path.stem}. Skipping.")
-                        continue
+                        continue  # Skip files that cannot be decrypted
         for sub_dir in dir_path.iterdir():
-            if sub_dir.is_dir():
+            if sub_dir.is_dir():  # If the subdirectory is a directory, recurse into it
                 search_passwords(sub_dir, description)
 
-    current_dir = load_current_directory()
-    search_passwords(current_dir, description)
+    current_dir = load_current_directory()  # Load the current directory
+    search_passwords(current_dir, description)  # Start the search from the current directory
 
     if results:
-        for domain, vault_id, desc, user_id, password in results:
+        for domain, vault_id, desc, user_id, password in results:  # Iterate over the search results
             click.echo(f"\nDomain: {domain}\nVault ID: {vault_id}\nDescription: {desc}\nUser ID: {user_id}\nPassword: {password}\n")
     else:
         click.echo("No matching descriptions found.")
-
-
 
 """
 creates the desiganted folder at the specified location in the file system.
@@ -621,7 +646,6 @@ creates the desiganted folder at the specified location in the file system.
 @click.pass_context
 def create_folder(ctx, folder_name):
     """Create a new directory for storing passwords."""
-    master_password = load_master_password()
     ensure_authenticated()
     current_dir = load_current_directory()
     new_folder = current_dir / folder_name
@@ -631,13 +655,11 @@ def create_folder(ctx, folder_name):
 """
 navigates to the specified directory provided in the command line
 """
-
 @vault.command(name="goto")
 @click.argument('directory')
 @click.pass_context
 def goto(ctx, directory):
     """Change the current directory for storing passwords."""
-    master_password = load_master_password()
     ensure_authenticated()
     current_dir = load_current_directory()
     
@@ -662,7 +684,6 @@ prints the current directory of the password manager instance
 @click.pass_context
 def pwd(ctx):
     """Print the current directory."""
-    master_password = load_master_password()
     ensure_authenticated()
     current_dir = load_current_directory()
     if current_dir == DATA_DIR:
