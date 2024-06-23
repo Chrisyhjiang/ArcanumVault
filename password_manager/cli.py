@@ -1,5 +1,3 @@
-import os
-import getpass
 import click
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -300,102 +298,46 @@ def vault(ctx):
         click.echo(ctx.get_help())
 
 @vault.command()
-@click.pass_context
-def authenticate(ctx):
+def authenticate():
     """Authenticate the user."""
     authenticate_user()
 
 @vault.command()
-@click.pass_context
-def set_master_password(ctx):
+def set_master_password():
     master_password = click.prompt('Master Password', hide_input=True)
-    store_master_password(master_password)
+    encrypt_master_password(master_password)
     cipher_singleton.refresh_cipher()  # Refresh the cipher when the master password is set
     click.echo("Master password set successfully.")
 
 @vault.command()
 @click.argument('folder', required=False)
-@click.pass_context
-def insert(ctx, folder):
+def insert(folder):
     ensure_authenticated()
-    with key_lock:
-        try:
-            cipher = cipher_singleton.get_cipher()  # Get the cipher from the singleton
-        except ValueError:
-            click.echo("Cipher not initialized. Run 'vault set-master-password' to set it.")
-            return
-
-        vault_id = str(uuid.uuid4())
-        domain = click.prompt('Domain Name')
-        description = click.prompt('Description')
-        user_id = click.prompt('User ID')
-        user_password = click.prompt('Password', hide_input=True, confirmation_prompt=True)
-        encrypted_password = cipher.encrypt(user_password.encode())
-        password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password.decode()}"
-        file_path = get_password_file_path(domain, folder)
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(file_path, 'w') as f:
-            f.write(password_entry)
-        click.echo(f"Password for {domain} inserted with description, User ID, and vaultID {vault_id}.")
-
-def show_passwords(directory, indent_level=0):
-    """Recursively show passwords and folders."""
-    try:
-        cipher = cipher_singleton.get_cipher()  # Get the cipher from the singleton
-    except ValueError:
-        click.echo("Cipher not initialized. Run 'vault set-master-password' to set it.")
-        return
-
-    for file_path in directory.iterdir():
-        if file_path.is_dir():
-            click.echo(f"{' ' * (indent_level * 2)}{file_path.name}/")
-            show_passwords(file_path, indent_level + 1)
-        elif file_path.suffix == '.pass':
-            try:
-                with open(file_path, 'r') as f:
-                    lines = f.read().splitlines()
-                    if len(lines) < 4:
-                        click.echo(f"{' ' * (indent_level * 2)}Invalid password file format for {file_path.stem}.")
-                        continue
-                    vault_id = lines[0]
-                    description = lines[1]
-                    user_id = lines[2]
-                    encrypted_password = lines[3].encode()
-                    try:
-                        user_password = cipher.decrypt(encrypted_password).decode()
-                    except InvalidToken:
-                        click.echo(f"{' ' * (indent_level * 2)}Failed to decrypt password for {file_path.stem}.")
-                        continue
-                click.echo(f"{' ' * (indent_level * 2)}Domain: {file_path.stem}")
-                click.echo(f"{' ' * (indent_level * 2)}  Description: {description}")
-                click.echo(f"{' ' * (indent_level * 2)}  User ID: {user_id}")
-                click.echo(f"{' ' * (indent_level * 2)}  Password: {user_password}")
-                click.echo(f"{' ' * (indent_level * 2)}  Vault ID: {vault_id}")
-            except FileNotFoundError:
-                click.echo(f"{' ' * (indent_level * 2)}No password found for {file_path.stem}")
+    domain = click.prompt('Domain Name')
+    description = click.prompt('Description')
+    user_id = click.prompt('User ID')
+    user_password = click.prompt('Password', hide_input=True, confirmation_prompt=True)
+    insert_password(domain, description, user_id, user_password, folder)
 
 @vault.command()
 @click.argument('folder', required=False)
-@click.pass_context
-def show(ctx, folder):
+def show(folder):
     ensure_authenticated()
-    with key_lock:
-        current_dir = load_current_directory()
-        if folder:
-            target_dir = current_dir / folder
-            if target_dir.exists() and target_dir.is_dir():
-                click.echo(f"{target_dir.name}/")  # Print the target directory
-                show_passwords(target_dir, indent_level=1)  # Indent subfolders and files
-            else:
-                click.echo(f"Folder '{folder}' does not exist.")
+    current_dir = load_current_directory()
+    if folder:
+        target_dir = current_dir / folder
+        if target_dir.exists() and target_dir.is_dir():
+            click.echo(f"{target_dir.name}/")  # Print the target directory
+            show_passwords(target_dir, indent_level=1)  # Indent subfolders and files
         else:
-            click.echo(f"{current_dir.name}/")  # Print the current directory
-            show_passwords(current_dir, indent_level=1)  # Indent subfolders and files
+            click.echo(f"Folder '{folder}' does not exist.")
+    else:
+        click.echo(f"{current_dir.name}/")  # Print the current directory
+        show_passwords(current_dir, indent_level=1)  # Indent subfolders and files
 
 @vault.command()
 @click.argument('folder_vault_id', nargs=-1)
-@click.pass_context
-def remove(ctx, folder_vault_id):
+def remove(folder_vault_id):
     ensure_authenticated()
     if len(folder_vault_id) == 0:
         click.echo("No vault ID provided.")
@@ -406,97 +348,36 @@ def remove(ctx, folder_vault_id):
     else:
         folder = folder_vault_id[0]
         vault_id = folder_vault_id[1]
-    
-    with key_lock:
-        current_dir = load_current_directory()
-        if folder:
-            current_dir = current_dir / folder
-        if not current_dir.exists():
-            click.echo(f"Folder '{folder}' does not exist.")
-            return
-        for file_path in current_dir.glob('*.pass'):
-            with open(file_path, 'r') as f:
-                lines = f.read().splitlines()
-            if len(lines) < 4:
-                continue
-            existing_vault_id = lines[0]
-            if existing_vault_id == vault_id:
-                os.remove(file_path)
-                click.echo(f"Password with vault ID {vault_id} removed.")
-                break
-        else:
-            click.echo(f"No entry found with vault ID {vault_id}")
+    remove_password(vault_id, folder)
 
 @vault.command()
 @click.argument('folder_vault_id', nargs=-1)
-@click.pass_context
-def generate(ctx, folder_vault_id):
+def generate(folder_vault_id):
     ensure_authenticated()
-    with key_lock:
-        import random
-        import string
-        if len(folder_vault_id) < 2:
-            click.echo("You must provide at least a domain and length.")
-            return
-        elif len(folder_vault_id) == 2:
-            folder = None
-            domain = folder_vault_id[0]
-            length = int(folder_vault_id[1])
-        else:
-            folder = folder_vault_id[0]
-            domain = folder_vault_id[1]
-            length = int(folder_vault_id[2])
+    if len(folder_vault_id) < 2:
+        click.echo("You must provide at least a domain and length.")
+        return
+    elif len(folder_vault_id) == 2:
+        folder = None
+        domain = folder_vault_id[0]
+        length = int(folder_vault_id[1])
+    else:
+        folder = folder_vault_id[0]
+        domain = folder_vault_id[1]
+        length = int(folder_vault_id[2])
 
-        generated_password = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=length))
-        try:
-            cipher = cipher_singleton.get_cipher()  # Get the cipher from the singleton
-        except ValueError:
-            click.echo("Cipher not initialized. Run 'vault set-master-password' to set it.")
-            return
-
-        encrypted_password = cipher.encrypt(generated_password.encode())
-        vault_id = str(uuid.uuid4())
-        description = click.prompt('Description')
-        user_id = click.prompt('User ID')
-        password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password.decode()}"
-        file_path = get_password_file_path(domain, folder)
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(file_path, 'w') as f:
-            f.write(password_entry)
-        click.echo(f"Generated password for {domain} with description, User ID, and vaultID {vault_id}: {generated_password}")
+    description = click.prompt('Description')
+    user_id = click.prompt('User ID')
+    generate_password(domain, length, description, user_id, folder)
 
 @vault.command()
-@click.pass_context
-def reformat(ctx):
+def reformat():
     ensure_authenticated()
-    with key_lock:
-        current_dir = load_current_directory()
-        try:
-            cipher = cipher_singleton.get_cipher()  # Get the cipher from the singleton
-        except ValueError:
-            click.echo("Cipher not initialized. Run 'vault set-master-password' to set it.")
-            return
-
-        for file_path in current_dir.glob('*.pass'):
-            domain_name = file_path.stem
-            with open(file_path, 'r') as f:
-                lines = f.read().splitlines()
-            if len(lines) == 3:
-                description = lines[0]
-                user_id = lines[1]
-                encrypted_password = lines[2]
-                vault_id = str(uuid.uuid4())
-                password_entry = f"{vault_id}\n{description}\n{user_id}\n{encrypted_password}"
-                with open(file_path, 'w') as f:
-                    f.write(password_entry)
-                click.echo(f"Reformatted {domain_name} with vault ID {vault_id}.")
-            elif len(lines) < 3:
-                click.echo(f"Skipping {domain_name}, invalid format.")
+    reformat_passwords()
 
 @vault.command()
 @click.argument('folder_vault_id', nargs=-1)
-@click.pass_context
-def update(ctx, folder_vault_id):
+def update(folder_vault_id):
     ensure_authenticated()
     if len(folder_vault_id) == 0:
         click.echo("No vault ID provided.")
@@ -507,160 +388,51 @@ def update(ctx, folder_vault_id):
     else:
         folder = folder_vault_id[0]
         vault_id = folder_vault_id[1]
-    
-    with key_lock:
-        current_dir = load_current_directory()
-        if folder:
-            current_dir = current_dir / folder
-        if not current_dir.exists():
-            click.echo(f"Folder '{folder}' does not exist.")
-            return
-        for file_path in current_dir.glob('*.pass'):
-            with open(file_path, 'r') as f:
-                lines = f.read().splitlines()
-            if len(lines) < 4:
-                continue
-            existing_vault_id = lines[0]
-            if existing_vault_id == vault_id:
-                description = lines[1]
-                user_id = lines[2]
-                encrypted_password = lines[3]
-                break
-        else:
-            click.echo(f"No entry found with vault ID {vault_id}")
-            return
 
-        new_description = click.prompt('New Description', default=description)
-        new_user_id = click.prompt('New User ID', default=user_id)
-        new_password = click.prompt('New Password', hide_input=True, confirmation_prompt=True)
-        try:
-            cipher = cipher_singleton.get_cipher()  # Get the cipher from the singleton
-        except ValueError:
-            click.echo("Cipher not initialized. Run 'vault set-master-password' to set it.")
-            return
-
-        encrypted_password = cipher.encrypt(new_password.encode()).decode()
-        password_entry = f"{vault_id}\n{new_description}\n{new_user_id}\n{encrypted_password}"
-        with open(file_path, 'w') as f:
-            f.write(password_entry)
-        click.echo(f"Updated entry with vault ID {vault_id}.")
+    new_description = click.prompt('New Description')
+    new_user_id = click.prompt('New User ID')
+    new_password = click.prompt('New Password', hide_input=True, confirmation_prompt=True)
+    update_password(vault_id, new_description, new_user_id, new_password, folder)
 
 @vault.command(name="install-completion")
 def install_completion():
     click.echo('source ./vault_completion.zsh')
 
 @vault.command(name="rotate-key")
-@click.pass_context
-def rotate_key(ctx):
+def rotate_key():
     ensure_authenticated()
-    with key_lock:
-        click.echo("Re-encrypting all passwords with the new key...")
-        try:
-            old_cipher = cipher_singleton.get_cipher()
-            cipher_singleton.refresh_cipher()  # Refresh the cipher for key rotation
-            new_cipher = cipher_singleton.get_cipher()
-        except ValueError:
-            click.echo("Cipher not initialized. Run 'vault set-master-password' to set it.")
-            return
+    click.echo("Re-encrypting all passwords with the new key...")
+    try:
+        old_cipher = cipher_singleton.get_cipher()
+        cipher_singleton.refresh_cipher()  # Refresh the cipher for key rotation
+        new_cipher = cipher_singleton.get_cipher()
+    except ValueError:
+        click.echo("Cipher not initialized. Run 'vault set-master-password' to set it.")
+        return
 
-        reencrypt_passwords(old_cipher, new_cipher)
-        click.echo("Key rotation completed successfully.")
-
-def rotate_key_for_directory(directory):
-    global cipher  # Use the global cipher variable for encryption and decryption
-    for root, _, files in os.walk(directory):
-        for file in files:
-            if file.endswith('.pass'):
-                file_path = Path(root) / file
-                with open(file_path, 'r') as f:
-                    lines = f.read().splitlines()
-                    if len(lines) < 4:
-                        click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
-                        continue
-                    description = lines[1]
-                    user_id = lines[2]
-                    encrypted_password = lines[3].encode()
-                    try:
-                        decrypted_password = cipher.decrypt(encrypted_password)
-                    except InvalidToken:
-                        click.echo(f"Failed to decrypt {file_path.stem}. Skipping.")
-                        continue
-                    new_encrypted_password = cipher.encrypt(decrypted_password)
-                    password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
-                    with open(file_path, 'w') as f:
-                        f.write(password_entry)
-    logging.info(f"Re-encryption completed for directory: {directory}")
+    reencrypt_passwords(old_cipher, new_cipher)
+    click.echo("Key rotation completed successfully.")
 
 @vault.command(name="delete-all")
-@click.pass_context
-def delete_all(ctx):
+def delete_all():
     ensure_authenticated()
-    with key_lock:
-        for root, dirs, files in os.walk(DATA_DIR, topdown=False):
-            for file in files:
-                os.remove(os.path.join(root, file))
-            for dir in dirs:
-                os.rmdir(os.path.join(root, dir))
-        click.echo("All password entries and directories have been deleted.")
+    delete_all_passwords()
 
 @vault.command()
 @click.argument('description')
-@click.pass_context
-def search(ctx, description):
+def search(description):
     ensure_authenticated()
-    results = []
-
-    def search_passwords(dir_path, description):
-        try:
-            cipher = cipher_singleton.get_cipher()  # Get the cipher from the singleton
-        except ValueError:
-            click.echo("Cipher not initialized. Run 'vault set-master-password' to set it.")
-            return
-
-        for file_path in dir_path.glob('*.pass'):
-            with open(file_path, 'r') as f:
-                lines = f.read().splitlines()
-                if len(lines) < 4:
-                    click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
-                    continue
-                vault_id = lines[0]
-                desc = lines[1]
-                user_id = lines[2]
-                encrypted_password = lines[3].encode()
-                if description.lower() in desc.lower():
-                    try:
-                        password = cipher.decrypt(encrypted_password).decode()
-                        results.append((file_path.stem, vault_id, desc, user_id, password))
-                    except InvalidToken:
-                        click.echo(f"Failed to decrypt password for {file_path.stem}. Skipping.")
-                        continue
-        for sub_dir in dir_path.iterdir():
-            if sub_dir.is_dir():
-                search_passwords(sub_dir, description)
-
-    current_dir = load_current_directory()
-    search_passwords(current_dir, description)
-
-    if results:
-        for domain, vault_id, desc, user_id, password in results:
-            click.echo(f"\nDomain: {domain}\nVault ID: {vault_id}\nDescription: {desc}\nUser ID: {user_id}\nPassword: {password}\n")
-    else:
-        click.echo("No matching descriptions found.")
+    search_passwords(description)
 
 @vault.command(name="create-folder")
 @click.argument('folder_name')
-@click.pass_context
-def create_folder(ctx, folder_name):
+def create_folder_cmd(folder_name):
     ensure_authenticated()
-    current_dir = load_current_directory()
-    new_folder = current_dir / folder_name
-    new_folder.mkdir(parents=True, exist_ok=True)
-    click.echo(f"Folder '{folder_name}' created.")
+    create_folder(folder_name)
 
 @vault.command(name="goto")
 @click.argument('directory')
-@click.pass_context
-def goto(ctx, directory):
+def goto(directory):
     ensure_authenticated()
     current_dir = load_current_directory()
     
@@ -697,8 +469,7 @@ def start_periodic_key_rotation(interval):
     rotation_thread.start()
 
 @vault.command()
-@click.pass_context
-def pwd(ctx):
+def pwd():
     ensure_authenticated()
     current_dir = load_current_directory()
     if current_dir == DATA_DIR:
