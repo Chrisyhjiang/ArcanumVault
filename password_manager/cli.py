@@ -291,6 +291,7 @@ def get_password_file_path(domain, folder=None):
 @click.pass_context
 def vault(ctx):
     ctx.ensure_object(dict)
+    
     if not MASTER_PASSWORD_FILE.exists():
         click.echo("Master password is not set. Run 'vault set-master-password' to set it.")
         ctx.invoke(set_master_password)
@@ -676,6 +677,25 @@ def goto(ctx, directory):
     else:
         click.echo(f"Directory '{directory}' does not exist.")
 
+def start_periodic_key_rotation(interval):
+    def periodic_task():
+        while True:
+            time.sleep(interval)
+            with key_lock:
+                click.echo("Performing periodic key rotation...")
+                try:
+                    old_cipher = cipher_singleton.get_cipher()
+                    cipher_singleton.refresh_cipher()
+                    new_cipher = cipher_singleton.get_cipher()
+                    reencrypt_passwords(old_cipher, new_cipher)
+                    logging.info("Periodic key rotation completed.")
+                except ValueError as e:
+                    logging.error(f"Error during periodic key rotation: {e}")
+                    continue
+    
+    rotation_thread = threading.Thread(target=periodic_task, daemon=True)
+    rotation_thread.start()
+
 @vault.command()
 @click.pass_context
 def pwd(ctx):
@@ -688,4 +708,6 @@ def pwd(ctx):
         click.echo(f"Current directory: data/{relative_path}")
 
 if __name__ == "__main__":
+    interval = 1800  # Rotate key every 1800 seconds (30 minutes)
+    start_periodic_key_rotation(interval)
     vault()
