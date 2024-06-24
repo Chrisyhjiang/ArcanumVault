@@ -259,3 +259,162 @@
 2024-06-22 18:22:13,942 - INFO - Re-encryption with new master password completed.
 2024-06-22 18:22:18,273 - INFO - Logging initialized
 2024-06-22 18:22:18,392 - DEBUG - Derived key: b'ZJ-GgYWHa-TUdTQMXSHVICbifDjytszSGQGMSZYv-ic='
+2024-06-22 19:13:05,264 - INFO - Logging initialized
+2024-06-22 19:14:01,949 - INFO - Logging initialized
+2024-06-22 19:14:04,126 - INFO - Master password stored in encrypted form on disk.
+2024-06-22 19:15:03,887 - INFO - Logging initialized
+2024-06-22 19:15:06,111 - INFO - Master password stored in encrypted form on disk.
+2024-06-22 19:15:06,159 - DEBUG - Derived key: b'lPZBQbZGZdUWEZv2phycrn9RBynQThNohzxdMJ8MWfQ='
+2024-06-22 19:15:06,159 - INFO - Re-encryption with new master password completed.
+2024-06-22 19:15:06,206 - DEBUG - Derived key: b'lPZBQbZGZdUWEZv2phycrn9RBynQThNohzxdMJ8MWfQ='
+2024-06-22 19:15:06,206 - INFO - Re-encryption with new master password completed.
+2024-06-22 19:15:11,263 - INFO - Logging initialized
+2024-06-22 19:15:11,385 - DEBUG - Derived key: b'lPZBQbZGZdUWEZv2phycrn9RBynQThNohzxdMJ8MWfQ='
+2024-06-22 19:15:16,268 - INFO - Logging initialized
+2024-06-22 19:15:16,388 - DEBUG - Derived key: b'lPZBQbZGZdUWEZv2phycrn9RBynQThNohzxdMJ8MWfQ='
+2024-06-22 19:15:18,321 - INFO - Logging initialized
+2024-06-22 19:15:18,441 - DEBUG - Derived key: b'lPZBQbZGZdUWEZv2phycrn9RBynQThNohzxdMJ8MWfQ='
+2024-06-22 19:15:18,490 - DEBUG - Derived key: b'lPZBQbZGZdUWEZv2phycrn9RBynQThNohzxdMJ8MWfQ='
+2024-06-22 19:15:18,491 - INFO - Re-encryption with new master password completed.
+2024-06-22 19:15:18,491 - INFO - Re-encryption with new master password completed.
+2024-06-22 19:15:20,748 - INFO - Logging initialized
+2024-06-22 19:15:20,867 - DEBUG - Derived key: b'lPZBQbZGZdUWEZv2phycrn9RBynQThNohzxdMJ8MWfQ='
+2024-06-23 20:16:15,401 - INFO - Logging initialized
+2024-06-23 20:16:17,332 - INFO - Master password stored in encrypted form on disk.
+2024-06-23 20:16:17,380 - DEBUG - Derived key: b'GUCxNcE4JetxL4bN1j_kasWXJAFbcifzvbzciUHXxMs='
+2024-06-23 20:16:17,380 - INFO - Re-encryption with new master password completed.
+2024-06-23 20:16:17,426 - DEBUG - Derived key: b'GUCxNcE4JetxL4bN1j_kasWXJAFbcifzvbzciUHXxMs='
+2024-06-23 20:16:17,426 - INFO - Re-encryption with new master password completed.
+2024-06-23 20:16:23,356 - INFO - Logging initialized
+2024-06-23 20:16:23,478 - DEBUG - Derived key: b'GUCxNcE4JetxL4bN1j_kasWXJAFbcifzvbzciUHXxMs='
+2024-06-23 20:16:23,527 - DEBUG - Derived key: b'GUCxNcE4JetxL4bN1j_kasWXJAFbcifzvbzciUHXxMs='
+2024-06-23 20:16:23,527 - INFO - Re-encryption with new master password completed.
+2024-06-23 20:16:23,527 - INFO - Re-encryption with new master password completed.
+2024-06-23 20:16:37,275 - INFO - Logging initialized
+2024-06-23 20:16:37,400 - DEBUG - Derived key: b'GUCxNcE4JetxL4bN1j_kasWXJAFbcifzvbzciUHXxMs='
+2024-06-23 20:16:51,788 - INFO - Logging initialized
+2024-06-23 20:16:51,913 - DEBUG - Derived key: b'GUCxNcE4JetxL4bN1j_kasWXJAFbcifzvbzciUHXxMs='
+2024-06-23 20:16:53,890 - INFO - Master password stored in encrypted form on disk.
+2024-06-23 20:16:53,951 - DEBUG - Derived key: b'nEVTMzuZNqUJLnpTBlhuOaijqE-nqr86_J77aMr4RlI='
+2024-06-23 20:16:53,951 - INFO - Re-encryption with new master password completed.
+2024-06-23 20:16:53,998 - DEBUG - Derived key: b'nEVTMzuZNqUJLnpTBlhuOaijqE-nqr86_J77aMr4RlI='
+2024-06-23 20:16:53,998 - INFO - Re-encryption with new master password completed.
+2024-06-23 20:16:55,804 - INFO - Logging initialized
+2024-06-23 20:16:55,921 - DEBUG - Derived key: b'nEVTMzuZNqUJLnpTBlhuOaijqE-nqr86_J77aMr4RlI='
+2024-06-23 20:17:02,612 - INFO - Logging initialized
+2024-06-23 20:17:02,732 - DEBUG - Derived key: b'nEVTMzuZNqUJLnpTBlhuOaijqE-nqr86_J77aMr4RlI='
+2024-06-23 20:17:04,841 - INFO - Master password stored in encrypted form on disk.
+2024-06-23 20:17:04,892 - DEBUG - Derived key: b'GUCxNcE4JetxL4bN1j_kasWXJAFbcifzvbzciUHXxMs='
+2024-06-23 20:17:04,892 - INFO - Re-encryption with new master password completed.
+2024-06-23 20:17:04,939 - DEBUG - Derived key: b'GUCxNcE4JetxL4bN1j_kasWXJAFbcifzvbzciUHXxMs='
+2024-06-23 20:17:04,939 - INFO - Re-encryption with new master password completed.
+2024-06-23 20:20:34,275 - INFO - Logging initialized
+2024-06-23 20:31:52,285 - INFO - Logging initialized
+2024-06-23 20:32:19,826 - INFO - Logging initialized
+2024-06-23 20:32:21,777 - INFO - Master password stored in encrypted form on disk.
+2024-06-23 20:32:21,825 - DEBUG - Derived key: b'TZrnhmaQ7XpMf_psdyflDLyrGZbIxKpsja3AiYUJls8='
+2024-06-23 20:32:21,825 - INFO - Re-encryption with new master password completed.
+2024-06-23 20:32:21,872 - DEBUG - Derived key: b'TZrnhmaQ7XpMf_psdyflDLyrGZbIxKpsja3AiYUJls8='
+2024-06-23 20:32:21,872 - INFO - Re-encryption with new master password completed.
+2024-06-23 20:33:12,243 - INFO - Logging initialized
+2024-06-23 20:33:14,187 - INFO - Master password stored in encrypted form on disk.
+2024-06-23 20:33:14,239 - DEBUG - Derived key: b'3Nh3OtqZa11UqBpmh5qg4CcR92LjSuuiJTLW6kzX_dU='
+2024-06-23 20:33:14,239 - INFO - Re-encryption with new master password completed.
+2024-06-23 20:33:14,289 - DEBUG - Derived key: b'3Nh3OtqZa11UqBpmh5qg4CcR92LjSuuiJTLW6kzX_dU='
+2024-06-23 20:33:14,289 - INFO - Re-encryption with new master password completed.
+2024-06-23 20:33:42,467 - INFO - Logging initialized
+2024-06-23 20:33:44,875 - INFO - Master password stored in encrypted form on disk.
+2024-06-23 20:33:44,924 - DEBUG - Derived key: b'kKSMqVOgS8lgj7P6VxobK6wDDksrz8K6rhZGSKaUeR0='
+2024-06-23 20:33:44,924 - INFO - Re-encryption with new master password completed.
+2024-06-23 20:33:44,971 - DEBUG - Derived key: b'kKSMqVOgS8lgj7P6VxobK6wDDksrz8K6rhZGSKaUeR0='
+2024-06-23 20:33:44,971 - INFO - Re-encryption with new master password completed.
+2024-06-24 08:54:37,716 - INFO - Logging initialized
+2024-06-24 08:54:39,668 - INFO - Master password stored in encrypted form on disk.
+2024-06-24 08:54:39,714 - DEBUG - Derived key: b'Q1rEWI65o1gW4UrtaHakosEciiSpf6AMoeUhWyMm7og='
+2024-06-24 08:54:39,714 - INFO - Re-encryption with new master password completed.
+2024-06-24 08:54:39,761 - DEBUG - Derived key: b'Q1rEWI65o1gW4UrtaHakosEciiSpf6AMoeUhWyMm7og='
+2024-06-24 08:54:39,761 - INFO - Re-encryption with new master password completed.
+2024-06-24 08:59:45,288 - INFO - Logging initialized
+2024-06-24 08:59:47,494 - INFO - Master password stored in encrypted form on disk.
+2024-06-24 08:59:47,542 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 08:59:47,542 - INFO - Re-encryption with new master password completed.
+2024-06-24 08:59:47,589 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 08:59:47,589 - INFO - Re-encryption with new master password completed.
+2024-06-24 09:06:18,983 - INFO - Logging initialized
+2024-06-24 09:06:19,163 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:06:22,331 - INFO - Logging initialized
+2024-06-24 09:06:22,458 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:06:28,236 - INFO - Logging initialized
+2024-06-24 09:06:28,360 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:06:30,614 - INFO - Logging initialized
+2024-06-24 09:06:30,736 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:06:32,819 - INFO - Logging initialized
+2024-06-24 09:06:32,941 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:06:36,331 - INFO - Logging initialized
+2024-06-24 09:06:36,457 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:06:40,220 - INFO - Logging initialized
+2024-06-24 09:06:40,343 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:06:42,389 - INFO - Logging initialized
+2024-06-24 09:06:42,511 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:06:50,217 - INFO - Logging initialized
+2024-06-24 09:06:50,341 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:06:50,389 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:06:50,390 - INFO - Re-encryption with new master password completed.
+2024-06-24 09:06:50,390 - INFO - Re-encryption with new master password completed.
+2024-06-24 09:06:55,099 - INFO - Logging initialized
+2024-06-24 09:06:55,222 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:07:00,138 - INFO - Master password stored in encrypted form on disk.
+2024-06-24 09:07:00,201 - DEBUG - Derived key: b'9v_gCwl0JNy7U5MhyFWkLLsE1blY3AR3VyKjjvGgv6o='
+2024-06-24 09:07:00,201 - INFO - Re-encryption with new master password completed.
+2024-06-24 09:07:00,249 - DEBUG - Derived key: b'9v_gCwl0JNy7U5MhyFWkLLsE1blY3AR3VyKjjvGgv6o='
+2024-06-24 09:07:00,250 - INFO - Re-encryption with new master password completed.
+2024-06-24 09:07:01,842 - INFO - Logging initialized
+2024-06-24 09:07:01,965 - DEBUG - Derived key: b'9v_gCwl0JNy7U5MhyFWkLLsE1blY3AR3VyKjjvGgv6o='
+2024-06-24 09:07:08,494 - INFO - Logging initialized
+2024-06-24 09:07:08,621 - DEBUG - Derived key: b'9v_gCwl0JNy7U5MhyFWkLLsE1blY3AR3VyKjjvGgv6o='
+2024-06-24 09:07:10,521 - INFO - Logging initialized
+2024-06-24 09:07:10,644 - DEBUG - Derived key: b'9v_gCwl0JNy7U5MhyFWkLLsE1blY3AR3VyKjjvGgv6o='
+2024-06-24 09:07:17,977 - INFO - Logging initialized
+2024-06-24 09:07:18,099 - DEBUG - Derived key: b'9v_gCwl0JNy7U5MhyFWkLLsE1blY3AR3VyKjjvGgv6o='
+2024-06-24 09:07:20,023 - INFO - Master password stored in encrypted form on disk.
+2024-06-24 09:07:20,086 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:07:20,087 - INFO - Re-encryption with new master password completed.
+2024-06-24 09:07:20,134 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:07:20,135 - INFO - Re-encryption with new master password completed.
+2024-06-24 09:07:23,603 - INFO - Logging initialized
+2024-06-24 09:07:23,726 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:07:29,804 - INFO - Logging initialized
+2024-06-24 09:07:29,925 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:09:36,982 - INFO - Logging initialized
+2024-06-24 09:09:37,109 - DEBUG - Derived key: b'EpEvNZmsg2vjdltfJiZR68uls0ZT5COER9E3dx8R0Vc='
+2024-06-24 09:11:15,065 - INFO - Logging initialized
+2024-06-24 09:11:15,735 - INFO - Master password stored in encrypted form on disk.
+2024-06-24 09:11:15,783 - DEBUG - Derived key: b'hJn5FYEBDV3kiQqxkZmas931ax9wZ_LgReEXWvQyoQo='
+2024-06-24 09:11:15,783 - INFO - Re-encryption with new master password completed.
+2024-06-24 09:11:15,831 - DEBUG - Derived key: b'hJn5FYEBDV3kiQqxkZmas931ax9wZ_LgReEXWvQyoQo='
+2024-06-24 09:11:15,831 - INFO - Re-encryption with new master password completed.
+2024-06-24 09:11:34,739 - INFO - Logging initialized
+2024-06-24 09:11:34,864 - DEBUG - Derived key: b'hJn5FYEBDV3kiQqxkZmas931ax9wZ_LgReEXWvQyoQo='
+2024-06-24 09:13:00,601 - INFO - Logging initialized
+2024-06-24 09:13:00,758 - DEBUG - Derived key: b'hJn5FYEBDV3kiQqxkZmas931ax9wZ_LgReEXWvQyoQo='
+2024-06-24 09:13:10,207 - INFO - Logging initialized
+2024-06-24 09:13:10,331 - DEBUG - Derived key: b'hJn5FYEBDV3kiQqxkZmas931ax9wZ_LgReEXWvQyoQo='
+2024-06-24 09:13:20,329 - INFO - Logging initialized
+2024-06-24 09:13:20,452 - DEBUG - Derived key: b'hJn5FYEBDV3kiQqxkZmas931ax9wZ_LgReEXWvQyoQo='
+2024-06-24 09:13:23,027 - INFO - Master password stored in encrypted form on disk.
+2024-06-24 09:13:23,093 - DEBUG - Derived key: b'AUq61GZNyvkdU3L--t6KBqc0Tfvzs0hIzEX0UQCIoNA='
+2024-06-24 09:13:23,093 - INFO - Re-encryption with new master password completed.
+2024-06-24 09:13:23,142 - DEBUG - Derived key: b'AUq61GZNyvkdU3L--t6KBqc0Tfvzs0hIzEX0UQCIoNA='
+2024-06-24 09:13:23,142 - INFO - Re-encryption with new master password completed.
+2024-06-24 09:33:43,067 - INFO - Logging initialized
+2024-06-24 09:33:45,353 - INFO - Master password stored in encrypted form on disk.
+2024-06-24 09:33:45,402 - DEBUG - Derived key: b'aEP-q7iMrIYwo3Qu-79JbXSBoP8l0-_TwMeZK04UYFU='
+2024-06-24 09:33:45,402 - INFO - Re-encryption with new master password completed.
+2024-06-24 09:33:45,451 - DEBUG - Derived key: b'aEP-q7iMrIYwo3Qu-79JbXSBoP8l0-_TwMeZK04UYFU='
+2024-06-24 09:33:45,451 - INFO - Re-encryption with new master password completed.
+2024-06-24 09:33:49,854 - INFO - Logging initialized
+2024-06-24 09:33:49,978 - DEBUG - Derived key: b'aEP-q7iMrIYwo3Qu-79JbXSBoP8l0-_TwMeZK04UYFU='
+2024-06-24 09:33:56,216 - INFO - Logging initialized
+2024-06-24 09:33:56,340 - DEBUG - Derived key: b'aEP-q7iMrIYwo3Qu-79JbXSBoP8l0-_TwMeZK04UYFU='
+2024-06-24 09:34:09,816 - INFO - Logging initialized
+2024-06-24 09:34:09,939 - DEBUG - Derived key: b'aEP-q7iMrIYwo3Qu-79JbXSBoP8l0-_TwMeZK04UYFU='
