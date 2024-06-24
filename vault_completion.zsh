@@ -16,6 +16,7 @@ _vault_completion() {
         'create-folder:Create a new directory for storing passwords'
         'goto:Change current directory'
         'pwd:prints current directory'
+        'set-master-password:reset the master password to another one'
     )
 
     _describe -t commands 'vault commands' commands

@@ -1,6 +1,5 @@
 import os
-import getpass
-from cryptography.fernet import Fernet, InvalidToken
+from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
@@ -9,6 +8,7 @@ from ctypes import CDLL, c_void_p, c_long
 import threading
 import logging
 import base64
+import click
 
 # Setup logging to redirect to a file
 logging.basicConfig(filename='vault.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -93,36 +93,21 @@ def load_salt():
 # Load the salt (generate it if it doesn't exist)
 fixed_salt = load_salt()
 
-def reencrypt_passwords(old_cipher, new_cipher):
-    for root, _, files in os.walk(DATA_DIR):
-        for file in files:
-            if file.endswith('.pass'):
-                file_path = Path(root) / file
-                with open(file_path, 'r') as f:
-                    lines = f.read().splitlines()
-                    if len(lines) < 4:
-                        click.echo(f"Invalid password file format for {file_path.stem}. Skipping.")
-                        continue
-                    description = lines[1]
-                    user_id = lines[2]
-                    encrypted_password = lines[3].encode()
-                    try:
-                        decrypted_password = old_cipher.decrypt(encrypted_password)
-                    except InvalidToken:
-                        click.echo(f"Failed to decrypt {file_path.stem}. Skipping.")
-                        continue
-                    new_encrypted_password = new_cipher.encrypt(decrypted_password)
-                    password_entry = f"{lines[0]}\n{description}\n{user_id}\n{new_encrypted_password.decode()}"
-                    with open(file_path, 'w') as f:
-                        f.write(password_entry)
-    logging.info("Re-encryption with new master password completed.")
+def load_current_directory():
+    if CURRENT_DIRECTORY_FILE.exists():
+        with open(CURRENT_DIRECTORY_FILE, 'r') as f:
+            return Path(f.read().strip())
+    return DATA_DIR
 
-def decrypt_master_password():
-    """Decrypt and return the master password using the secure key."""
-    secure_key = load_secure_key()
-    fernet = Fernet(secure_key)
-    with open(MASTER_PASSWORD_FILE, 'rb') as f:
-        encrypted_password = f.read()
-    password = fernet.decrypt(encrypted_password).decode()
-    return password
+def save_current_directory(current_directory):
+    with open(CURRENT_DIRECTORY_FILE, 'w') as f:
+        f.write(str(current_directory))
 
+
+def get_password_file_path(domain, folder=None):
+    current_dir = load_current_directory()
+    if folder:
+        target_dir = (current_dir / folder).resolve()
+    else:
+        target_dir = current_dir
+    return target_dir / f"{domain}.pass"
