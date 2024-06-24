@@ -7,10 +7,10 @@ import uuid
 import threading
 import logging
 from .utils import (DATA_DIR, MASTER_PASSWORD_FILE, load_secure_key, set_permissions, key_lock, 
-                    load_current_directory, save_current_directory, get_password_file_path)
+                    load_current_directory, save_current_directory, get_password_file_path, reencrypt_passwords)
 from .cipher import cipher_singleton
 from .auth import (ensure_authenticated, authenticate_user)
-from .master_password_ops import store_master_password, reencrypt_passwords
+from .master_password_ops import store_master_password
 
 @click.group(invoke_without_command=True)
 @click.pass_context

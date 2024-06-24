@@ -1,7 +1,6 @@
 import threading
 from cryptography.fernet import Fernet
-from .utils import derive_key
-from .master_password_ops import reencrypt_passwords, decrypt_master_password
+from .utils import derive_key, reencrypt_passwords, decrypt_master_password
 class CipherSingleton:
     _instance = None
     _lock = threading.Lock()
