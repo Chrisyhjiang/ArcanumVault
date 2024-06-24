@@ -3,8 +3,7 @@ import os
 import getpass
 import time
 from ctypes import CDLL, c_void_p, c_long
-from .utils import (LAContext, LAPolicyDeviceOwnerAuthenticationWithBiometrics, libdispatch, SESSION_FILE, SESSION_TIMEOUT)
-from .master_password_ops import decrypt_master_password
+from .utils import (LAContext, LAPolicyDeviceOwnerAuthenticationWithBiometrics, libdispatch, SESSION_FILE, SESSION_TIMEOUT, decrypt_master_password)
 
 def authenticate_fingerprint_mac():
     """Authenticate the user using fingerprint on macOS."""
