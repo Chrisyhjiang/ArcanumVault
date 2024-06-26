@@ -11,7 +11,7 @@ from .utils import (DATA_DIR, MASTER_PASSWORD_FILE, load_secure_key, set_permiss
 from .cipher import cipher_singleton
 from .auth import (ensure_authenticated, authenticate_user)
 from .master_password_ops import store_master_password
-
+from .csv_ops import import_passwords_from_csv, export_passwords_to_csv
 @click.group(invoke_without_command=True)
 @click.pass_context
 def vault(ctx):
@@ -430,6 +430,32 @@ def pwd(ctx):
     else:
         relative_path = current_dir.relative_to(DATA_DIR)
         click.echo(f"Current directory: data/{relative_path}")
+
+@vault.command()
+@click.argument('file_path', type=click.Path())
+@click.pass_context
+def export(ctx, file_path):
+    """Export passwords to a CSV file."""
+    if os.path.isdir(file_path):
+        click.echo("Error: Provided path is a directory. Please provide a full file path including the filename.")
+        return
+    
+    if not file_path.endswith('.csv'):
+        file_path = f"{file_path}.csv"
+    
+    ensure_authenticated()
+    with key_lock:
+        export_passwords_to_csv(file_path)
+
+@vault.command(name='import')
+@click.argument('file_path', type=click.Path(exists=True))
+@click.pass_context
+def import_passwords(ctx, file_path):
+    """Import passwords from a CSV file."""
+    ensure_authenticated()
+    with key_lock:
+        import_passwords_from_csv(file_path)
+
 
 if __name__ == "__main__":
     interval = 1800  # Rotate key every 1800 seconds (30 minutes)
