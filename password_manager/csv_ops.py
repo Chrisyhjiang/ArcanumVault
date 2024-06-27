@@ -8,9 +8,9 @@ from .cipher import cipher_singleton
 from .utils import DATA_DIR, get_password_file_path, load_current_directory, decrypt_master_password
 from .master_password_ops import store_master_password
 
-def export_passwords_to_csv(file_path):
+def export_passwords_to_csv(output_file_path):
     """Export passwords to a CSV file."""
-    with open(file_path, 'w', newline='') as csvfile:
+    with open(output_file_path, 'w', newline='') as csvfile:
         fieldnames = ['Folder', 'Domain', 'Description', 'User ID', 'Password', 'Vault ID']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
@@ -21,8 +21,8 @@ def export_passwords_to_csv(file_path):
             relative_folder = os.path.relpath(root, current_directory)
             for file in files:
                 if file.endswith('.pass'):
-                    file_path = Path(root) / file
-                    with open(file_path, 'r') as f:
+                    password_file_path = Path(root) / file
+                    with open(password_file_path, 'r') as f:
                         lines = f.read().splitlines()
                         if len(lines) < 4:
                             continue
@@ -33,13 +33,13 @@ def export_passwords_to_csv(file_path):
                         password = cipher.decrypt(encrypted_password).decode()
                         writer.writerow({
                             'Folder': relative_folder,
-                            'Domain': file_path.stem,
+                            'Domain': password_file_path.stem,
                             'Description': description,
                             'User ID': user_id,
                             'Password': password,
                             'Vault ID': vault_id
                         })
-    click.echo(f"Passwords exported to {file_path}")
+    click.echo(f"Passwords exported to {output_file_path}")
 
 def import_passwords_from_csv(file_path):
     from .cipher import cipher_singleton
