@@ -6,6 +6,7 @@ import time
 import uuid
 import threading
 import logging
+from .face_recognition_auth import capture_user_face
 from .utils import (DATA_DIR, MASTER_PASSWORD_FILE, load_secure_key, set_permissions, key_lock, 
                     load_current_directory, save_current_directory, get_password_file_path, reencrypt_passwords)
 from .cipher import cipher_singleton
@@ -456,6 +457,11 @@ def import_passwords(ctx, file_path):
     with key_lock:
         import_passwords_from_csv(file_path)
 
+@vault.command()
+@click.pass_context
+def capture(ctx):
+    """Capture the user's face data."""
+    capture_user_face()
 
 if __name__ == "__main__":
     interval = 1800  # Rotate key every 1800 seconds (30 minutes)
