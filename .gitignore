@@ -10,3 +10,4 @@ key.key
 myenv/
 build/
 password_manager.egg-info/
+vault.log
