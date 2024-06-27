@@ -2,13 +2,15 @@ import cv2
 import face_recognition
 import os
 import pickle
+from pathlib import Path
 
-FACE_DATA_DIR = "face_data"
-FACE_DATA_FILE = os.path.join(FACE_DATA_DIR, "face_encoding.pkl")
+# Define the directory for face data
+FACE_DATA_DIR = Path.home() / ".password_manager"
+FACE_DATA_FILE = FACE_DATA_DIR / "face_encoding.pkl"
 
 def capture_face():
-    if not os.path.exists(FACE_DATA_DIR):
-        os.makedirs(FACE_DATA_DIR)
+    if not FACE_DATA_DIR.exists():
+        FACE_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     cap = cv2.VideoCapture(0)
     print("Capturing face. Please look at the camera...")
@@ -38,7 +40,7 @@ def capture_face():
         print("Camera capture failed. Please try again.")
 
 def load_face_data():
-    if not os.path.exists(FACE_DATA_FILE):
+    if not FACE_DATA_FILE.exists():
         print("No face data found. Please capture face first.")
         return None
     with open(FACE_DATA_FILE, "rb") as f:
