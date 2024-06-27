@@ -159,3 +159,15 @@ vault goto <directory>
 ```bash
 vault pwd
 ```
+
+#### export passwords to a CSV file
+
+```bash
+vault export <folder_name/file_name>
+```
+
+#### import passwords from a CSV file (perviously exported)
+
+```bash
+vault export <folder_name/file_name>
+```
