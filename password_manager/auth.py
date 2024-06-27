@@ -4,6 +4,7 @@ import getpass
 import time
 from ctypes import CDLL, c_void_p, c_long
 from .utils import (LAContext, LAPolicyDeviceOwnerAuthenticationWithBiometrics, libdispatch, SESSION_FILE, SESSION_TIMEOUT, decrypt_master_password)
+from .face_recognition_auth import authenticate_user_face
 
 def authenticate_fingerprint_mac():
     """Authenticate the user using fingerprint on macOS."""
@@ -36,14 +37,8 @@ def authenticate_fingerprint_mac():
         return False
 
 def authenticate_user():
-    try:
-        username = os.getlogin()
-        if username == 'root':
-            username = getpass.getuser()
-    except Exception:
-        username = getpass.getuser()
+    choice = click.prompt('Choose authentication method: [P]assword/[F]ingerprint/[C]apture', type=str).lower()
 
-    choice = click.prompt('Choose authentication method: [P]assword/[F]ingerprint', type=str).lower()
     if choice == 'p':
         stored_master_password = decrypt_master_password()
         password = click.prompt('Master Password', hide_input=True)
@@ -66,6 +61,14 @@ def authenticate_user():
         else:
             click.echo("Fingerprint authentication is not supported on this system.")
             exit(1)
+    elif choice == 'c':
+        if not authenticate_user_face():
+            click.echo("Facial recognition authentication failed.")
+            exit(1)
+        else:
+            click.echo("Facial recognition authentication succeeded.")
+            with open(SESSION_FILE, 'w') as f:
+                f.write(str(int(time.time())))
     else:
         click.echo("Invalid choice.")
         exit(1)
@@ -88,4 +91,3 @@ def is_authenticated():
         os.remove(SESSION_FILE)
         return False
     return True
-

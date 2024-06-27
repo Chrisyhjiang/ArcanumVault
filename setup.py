@@ -13,8 +13,11 @@ setup(
         'pyobjc-framework-Quartz',
         'pyobjc-framework-LocalAuthentication',
         'six',
-        'pexpect'
-        # Add other dependencies if needed
+        'pexpect',
+        'cmake',
+        'opencv-python',
+        'dlib',
+        'face_recognition'
     ],
     entry_points='''
         [console_scripts]
