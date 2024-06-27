@@ -17,6 +17,8 @@ _vault_completion() {
         'goto:Change current directory'
         'pwd:prints current directory'
         'set-master-password:reset the master password to another one'
+        'export:exports all current encrypted passwords into a csv'
+        'import:imports all encrypted passwords and sets up the file structure accordingly'
     )
 
     _describe -t commands 'vault commands' commands
