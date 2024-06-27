@@ -4,8 +4,8 @@ import click
 import os
 from pathlib import Path
 from cryptography.fernet import Fernet, InvalidToken
-from .cipher import CipherSingleton
-from .utils import DATA_DIR, get_password_file_path, load_current_directory
+from .cipher import cipher_singleton
+from .utils import DATA_DIR, get_password_file_path, load_current_directory, decrypt_master_password
 from .master_password_ops import store_master_password
 
 def export_passwords_to_csv(file_path):
@@ -15,7 +15,7 @@ def export_passwords_to_csv(file_path):
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
-        cipher = CipherSingleton().get_cipher()
+        cipher = cipher_singleton.get_cipher()
         current_directory = load_current_directory()
         for root, _, files in os.walk(current_directory):
             relative_folder = os.path.relpath(root, current_directory)
@@ -49,6 +49,13 @@ def import_passwords_from_csv(file_path):
     store_master_password(click.prompt('Enter the master password used for exporting', hide_input=True))
     cipher_singleton.refresh_cipher()
     
+    try:
+        decrypted_password = decrypt_master_password()
+    except InvalidToken:
+        click.echo("Invalid master password. Import failed.")
+        return
+
+    cipher = cipher_singleton.get_cipher()
     with open(file_path, 'r') as csvfile:
         reader = csv.DictReader(csvfile)
         current_directory = load_current_directory()
