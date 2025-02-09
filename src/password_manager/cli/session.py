@@ -38,21 +38,21 @@ class Session:
 # Global session instance
 current_session = Session()
 
-def require_auth(auth_service: HashBasedAuth):
-    """Decorator to require authentication for commands."""
+def require_auth(auth_service):
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            if not current_session.is_valid():
-                current_session.logout()
-                password = click.prompt("Enter master password", hide_input=True)
-                if not auth_service.authenticate(password):
-                    click.echo("Authentication failed. Please try again.")
+            if not current_session.is_authenticated:
+                # Strip any extra whitespace from the input
+                password = click.prompt("Enter master password", hide_input=True).strip()
+                if auth_service.authenticate(password):
+                    from password_manager.cli.commands import initialize_services
+                    initialize_services(auth_service.get_master_key())
+                    current_session.login()
+                else:
+                    click.echo("Authentication failed.")
                     return
-                current_session.login()
-            current_session.refresh()
             return f(*args, **kwargs)
         return wrapped
     return decorator
-
 # ... rest of the session.py content ... 
