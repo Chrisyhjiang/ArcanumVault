@@ -1,10 +1,15 @@
+import logging
 from abc import ABC, abstractmethod
 from typing import Optional
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.exceptions import InvalidTag
 import base64
 import os
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class EncryptionService(ABC):
     """Abstract base class for encryption services."""
@@ -22,17 +27,18 @@ class EncryptionService(ABC):
 class AES256Encryption(EncryptionService):
     """AES-256 encryption implementation with proper key derivation."""
     
-    def __init__(self, master_key: Optional[bytes] = None, salt: Optional[bytes] = None):
-        """Initialize with an optional master key and salt."""
-        self._master_key = master_key or os.urandom(32)  # 256-bit key
+    def __init__(self, master_key: bytes, salt: Optional[bytes] = None):
+        """Initialize with master key and optional salt."""
+        self._master_key = master_key  # This should be the hash of master password
         self._salt = salt or os.urandom(16)
         self._key = self._derive_key()
+        logging.debug(f"Initialized AES256Encryption with key: {self._key.hex()} and salt: {self._salt.hex()}")
     
     def _derive_key(self) -> bytes:
-        """Derive an encryption key using PBKDF2."""
+        """Derive encryption key from master key."""
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
-            length=32,  # 256 bits
+            length=32,
             salt=self._salt,
             iterations=100000,
         )
@@ -48,6 +54,7 @@ class AES256Encryption(EncryptionService):
         encryptor = cipher.encryptor()
         
         ciphertext = encryptor.update(data) + encryptor.finalize()
+        logging.debug(f"Encrypted data with IV: {iv.hex()}, Tag: {encryptor.tag.hex()}, Ciphertext: {ciphertext.hex()}")
         
         # Combine IV, ciphertext, and tag
         return base64.b64encode(iv + encryptor.tag + ciphertext)
@@ -60,14 +67,23 @@ class AES256Encryption(EncryptionService):
         tag = raw_data[12:28]
         ciphertext = raw_data[28:]
         
+        logging.debug(f"Decrypting data with IV: {iv.hex()}, Tag: {tag.hex()}, Ciphertext length: {len(ciphertext)}")
+        logging.debug(f"Using key: {self._key.hex()}")
+        
         cipher = Cipher(
             algorithms.AES(self._key),
             modes.GCM(iv, tag),
         )
         decryptor = cipher.decryptor()
         
-        return decryptor.update(ciphertext) + decryptor.finalize()
-    
+        try:
+            decrypted_data = decryptor.update(ciphertext) + decryptor.finalize()
+            logging.debug(f"Decryption successful, plaintext: {decrypted_data.decode(errors='ignore')}")
+            return decrypted_data
+        except InvalidTag as e:
+            logging.error("Decryption failed due to invalid tag", exc_info=e)
+            raise
+
     @property
     def key(self) -> bytes:
         return self._master_key

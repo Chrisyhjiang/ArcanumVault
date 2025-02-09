@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import base64
 import click
+from password_manager.core.encryption import AES256Encryption
 
 class AuthenticationService(ABC):
     """Abstract base class for authentication services."""
@@ -22,40 +23,54 @@ class AuthenticationService(ABC):
 class HashBasedAuth(AuthenticationService):
     """Simple hash-based authentication implementation."""
     
-    def __init__(self, storage_path: Path):
-        self.storage_path = storage_path
-        self.storage_path.mkdir(parents=True, exist_ok=True)
-        self._hash_path = self.storage_path / 'master.hash'
+    def __init__(self, master_password_file: Path):
+        self.master_password_file = master_password_file
+        self.salt_file = master_password_file.parent / 'salt'
+        self._master_key = None
+        self._salt = self._load_or_create_salt()
     
-    def authenticate(self, password: str) -> bool:
-        """Verify the provided password against stored hash."""
-        if not self._hash_path.exists():
-            return False
-        
-        stored_data = self._hash_path.read_text()
-        stored_salt, stored_hash = stored_data.split(':')
-        return self._hash_password(password, base64.b64decode(stored_salt)) == stored_hash
+    def get_master_key(self) -> bytes:
+        """Get the current master key."""
+        if self._master_key is None:
+            raise ValueError("No master key available. Please authenticate first.")
+        return self._master_key
     
-    def set_master_password(self, password: str) -> None:
-        """Set a new master password."""
-        if self._hash_path.exists():
-            current_password = click.prompt("Enter current master password", hide_input=True)
-            if not self.authenticate(current_password):
-                click.echo("Authentication failed. Cannot reset master password.")
-                return
-        
+    def _load_or_create_salt(self) -> bytes:
+        """Load existing salt or create a new one."""
+        if self.salt_file.exists():
+            return base64.b64decode(self.salt_file.read_text())
         salt = os.urandom(16)
-        password_hash = self._hash_password(password, salt)
-        self._hash_path.write_text(f"{base64.b64encode(salt).decode()}:{password_hash}")
-        click.echo("Master password set successfully.")
+        self.salt_file.parent.mkdir(parents=True, exist_ok=True)
+        self.salt_file.write_text(base64.b64encode(salt).decode())
+        return salt
     
-    def _hash_password(self, password: str, salt: bytes) -> str:
-        """Create a secure hash of the password."""
+    def _hash_password(self, password: str) -> bytes:
+        """Create a secure hash of the password using stored salt."""
         return hashlib.pbkdf2_hmac(
             'sha256',
             password.encode(),
-            salt,
-            100000  # Number of iterations
-        ).hex()
+            self._salt,  # Use the stored salt
+            100000,
+            dklen=32
+        )
+    
+    def authenticate(self, password: str) -> bool:
+        """Authenticate using the given password."""
+        if not self.master_password_file.exists():
+            return False
+        
+        stored_hash = self.master_password_file.read_text().strip()
+        password_hash = self._hash_password(password)
+        
+        if base64.b64encode(password_hash).decode() == stored_hash:
+            self._master_key = password_hash
+            return True
+        return False
+    
+    def set_master_password(self, password: str) -> None:
+        """Set or update the master password."""
+        password_hash = self._hash_password(password)
+        self._master_key = password_hash
+        self.master_password_file.parent.mkdir(parents=True, exist_ok=True)
+        self.master_password_file.write_text(base64.b64encode(password_hash).decode())
 
-# ... rest of the auth.py content ... 

@@ -8,13 +8,24 @@ from password_manager.core.vault import PasswordVault
 from password_manager.core.encryption import AES256Encryption
 from password_manager.core.auth import HashBasedAuth
 from password_manager.cli.session import current_session, require_auth
-import cryptography.exceptions
+from functools import wraps
 
 # Set the data directory to a subdirectory in the user's home directory
 DATA_DIR = Path(os.path.expanduser('~/.password_manager_data'))
-auth_service = HashBasedAuth(DATA_DIR)
-encryption_service = AES256Encryption()
-vault = PasswordVault(encryption_service, DATA_DIR)
+MASTER_PASSWORD_FILE = DATA_DIR / 'master.key'
+
+# Initialize auth service
+auth_service = HashBasedAuth(MASTER_PASSWORD_FILE)
+
+# Initialize encryption service with None - will be set after authentication
+encryption_service = None
+vault = None
+
+def initialize_services(master_key: bytes):
+    """Initialize encryption service and vault with the master key."""
+    global encryption_service, vault
+    encryption_service = AES256Encryption(master_key=master_key)
+    vault = PasswordVault(encryption_service, DATA_DIR)
 
 # Define the CLI group
 @click.group()
@@ -68,20 +79,37 @@ def list():
 @cli.command()
 @require_auth(auth_service)
 def show():
-    """Show details of a specific password by ID."""
-    id = click.prompt('Password ID')
-    pwd = vault.get_password(id)
+    """Show details of a specific password by domain or username."""
+    query = click.prompt('Enter domain or username to search')
+    matching_passwords = [
+        pwd for pwd in vault.list_passwords()
+        if query.lower() in pwd.domain.lower() or query.lower() in pwd.username.lower()
+    ]
     
-    if not pwd:
-        click.echo("Password not found.")
+    if not matching_passwords:
+        click.echo("No matching passwords found.")
         return
     
-    click.echo(f"\nDomain: {pwd.domain}")
-    click.echo(f"Username: {pwd.username}")
-    click.echo(f"Description: {pwd.description}")
+    if len(matching_passwords) == 1:
+        selected_password = matching_passwords[0]
+    else:
+        click.echo("Multiple matches found:")
+        for i, pwd in enumerate(matching_passwords, start=1):
+            click.echo(f"{i}: Domain: {pwd.domain}, Username: {pwd.username}")
+        
+        choice = click.prompt("Select a password by number", type=int)
+        if choice < 1 or choice > len(matching_passwords):
+            click.echo("Invalid selection.")
+            return
+        
+        selected_password = matching_passwords[choice - 1]
+    
+    click.echo(f"\nDomain: {selected_password.domain}")
+    click.echo(f"Username: {selected_password.username}")
+    click.echo(f"Description: {selected_password.description}")
     
     if click.confirm("Show password?"):
-        decrypted = vault.get_decrypted_password(id)
+        decrypted = vault.get_decrypted_password(selected_password.id)
         click.echo(f"Password: {decrypted}")
 
 @cli.command()
@@ -99,6 +127,7 @@ def set_master_password():
     """Set or update the master password for authentication."""
     password = click.prompt('Enter new master password', hide_input=True, confirmation_prompt=True)
     auth_service.set_master_password(password)
+    initialize_services(auth_service.get_master_key())
     click.echo("Master password set successfully.")
 
 @cli.command()
@@ -129,52 +158,10 @@ def install_completion():
     click.echo("To enable shell completion, add the following line to your shell's configuration file:")
     click.echo('eval "$(_VAULT_COMPLETE=source_bash vault)"')
 
-def start_key_rotation():
-    """Start background key rotation thread."""
-    def rotate_keys():
-        # Initial wait before starting the first key rotation
-        threading.Event().wait(3600)  # Wait for 1 hour before the first rotation
-
-        while True:
-            click.echo("Performing key rotation...")
-            # Generate a new key
-            new_key = encryption_service._derive_key()
-            
-            # Re-encrypt all passwords with the new key
-            for password in vault.list_passwords():
-                try:
-                    # Decrypt with the old key
-                    decrypted_password = encryption_service.decrypt(password.encrypted_password)
-                    
-                    # Temporarily set the new key for encryption
-                    encryption_service._key = new_key
-                    
-                    # Re-encrypt with the new key
-                    new_encrypted_password = encryption_service.encrypt(decrypted_password)
-                    password.encrypted_password = new_encrypted_password
-                except cryptography.exceptions.InvalidTag:
-                    click.echo(f"Failed to rotate key for password ID: {password.id}")
-                    continue
-            
-            # Save the updated passwords
-            vault._save_passwords()
-            
-            # Update the encryption service with the new key
-            encryption_service._key = new_key
-            
-            click.echo("Key rotation complete.")
-            threading.Event().wait(3600)  # Rotate every hour
-
-    thread = threading.Thread(target=rotate_keys, daemon=True)
-    thread.start()
-
 def main():
     """Main entry point."""
     # Ensure data directory exists
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    
-    # Start key rotation
-    start_key_rotation()
     
     # Start CLI
     cli()
