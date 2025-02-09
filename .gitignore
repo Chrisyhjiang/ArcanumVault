@@ -1,13 +1,29 @@
-*.pyc
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
 .env
-*.env
+.venv
+env/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Password manager specific
+.password_manager/
+
+# IDE
 .vscode/
 .idea/
-.venv/
-key.key
-.session
-myenv/
-build/
-password_manager.egg-info/
-vault.log
+
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+

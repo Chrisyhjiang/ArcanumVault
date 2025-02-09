@@ -1,4 +1,0 @@
-vault insert
-vault insert
-vault insert
-vault rotate-key

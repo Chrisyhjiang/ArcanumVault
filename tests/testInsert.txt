@@ -1,4 +1,0 @@
-vault insert
-vault show
-vault insert
-vault show

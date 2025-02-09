@@ -2,31 +2,17 @@ from setuptools import setup, find_packages
 
 setup(
     name='password_manager',
-    version='0.1',
-    packages=find_packages(),
-    include_package_data=True,
+    version='0.1.0',
+    packages=find_packages(where='src'),
+    package_dir={'': 'src'},
     install_requires=[
-        'click',
-        'cryptography',
-        'python-pam',
-        'pyobjc-framework-Cocoa',
-        'pyobjc-framework-Quartz',
-        'pyobjc-framework-LocalAuthentication',
-        'six',
-        'pexpect',
-        'cmake',
-        'opencv-python',
-        'dlib',
-        'face_recognition'
+        'click>=8.0.0',
+        'cryptography>=41.0.0',
+        'pathlib>=1.0.1',
     ],
-    entry_points='''
-        [console_scripts]
-        vault=password_manager.cli:vault
-    ''',
-    data_files=[
-        ('share/zsh/site-functions', ['vault_completion.zsh']),
-    ],
-    package_data={
-        '': ['*.zsh'],
+    entry_points={
+        'console_scripts': [
+            'vault=password_manager.cli.commands:main',
+        ],
     },
-)
+) 
