@@ -23,4 +23,4 @@ class Password:
             username=username,
             encrypted_password=encrypted_password,
             description=description
-        ) 
+        )

@@ -41,6 +41,8 @@ class HashBasedAuth(AuthenticationService):
         salt = os.urandom(16)
         self.salt_file.parent.mkdir(parents=True, exist_ok=True)
         self.salt_file.write_text(base64.b64encode(salt).decode())
+        # Set file permission to read/write for owner only
+        os.chmod(self.salt_file, 0o600)
         return salt
 
     @property
@@ -75,3 +77,5 @@ class HashBasedAuth(AuthenticationService):
         self._master_key = password_hash
         self.master_password_file.parent.mkdir(parents=True, exist_ok=True)
         self.master_password_file.write_text(base64.b64encode(password_hash).decode())
+        # Set file permission to read/write for owner only
+        os.chmod(self.master_password_file, 0o600)

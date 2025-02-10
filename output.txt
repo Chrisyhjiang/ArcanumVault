@@ -1,11 +1,10 @@
+# password_manager/core/auth.py
+
 from abc import ABC, abstractmethod
-from typing import Optional
+from pathlib import Path
 import hashlib
 import os
-from pathlib import Path
 import base64
-import click
-from password_manager.core.encryption import AES256Encryption
 import logging
 
 class AuthenticationService(ABC):
@@ -31,41 +30,40 @@ class HashBasedAuth(AuthenticationService):
         self._salt = self._load_or_create_salt()
     
     def get_master_key(self) -> bytes:
-        """Get the current master key."""
         if self._master_key is None:
             raise ValueError("No master key available. Please authenticate first.")
         return self._master_key
     
     def _load_or_create_salt(self) -> bytes:
-        """Load existing salt or create a new one."""
+        """Load the stored salt from file (stripping whitespace) or create a new one."""
         if self.salt_file.exists():
-            return base64.b64decode(self.salt_file.read_text())
+            return base64.b64decode(self.salt_file.read_text().strip())
         salt = os.urandom(16)
         self.salt_file.parent.mkdir(parents=True, exist_ok=True)
         self.salt_file.write_text(base64.b64encode(salt).decode())
         return salt
-    
+
+    @property
+    def salt(self) -> bytes:
+        """Expose the persisted salt."""
+        return self._salt
+
     def _hash_password(self, password: str) -> bytes:
-        """Create a secure hash of the password using stored salt."""
         return hashlib.pbkdf2_hmac(
             'sha256',
             password.encode(),
-            self._salt,  # Use the stored salt
+            self._salt,
             100000,
             dklen=32
         )
     
     def authenticate(self, password: str) -> bool:
-        """Authenticate using the given password."""
         if not self.master_password_file.exists():
             return False
-        
         stored_hash = self.master_password_file.read_text().strip()
         password_hash = self._hash_password(password)
-        
         logging.debug(f"Stored hash: {stored_hash}, Computed hash: {base64.b64encode(password_hash).decode()}")
         logging.debug(f"Using salt: {base64.b64encode(self._salt).decode()}")
-        
         if base64.b64encode(password_hash).decode() == stored_hash:
             self._master_key = password_hash
             logging.debug(f"Authentication successful, master key: {self._master_key.hex()}")
@@ -73,24 +71,21 @@ class HashBasedAuth(AuthenticationService):
         return False
     
     def set_master_password(self, password: str) -> None:
-        """Set or update the master password."""
         password_hash = self._hash_password(password)
         self._master_key = password_hash
         self.master_password_file.parent.mkdir(parents=True, exist_ok=True)
         self.master_password_file.write_text(base64.b64encode(password_hash).decode())
+# password_manager/core/encryption.py
 
+import os
+import base64
 import logging
-from abc import ABC, abstractmethod
 from typing import Optional
+from abc import ABC, abstractmethod
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.exceptions import InvalidTag
-import base64
-import os
-
-# Set up logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class EncryptionService(ABC):
     """Abstract base class for encryption services."""
@@ -109,14 +104,16 @@ class AES256Encryption(EncryptionService):
     """AES-256 encryption implementation with proper key derivation."""
     
     def __init__(self, master_key: bytes, salt: Optional[bytes] = None):
-        """Initialize with master key and optional salt."""
-        self._master_key = master_key  # This should be the hash of master password
-        self._salt = salt or os.urandom(16)
+        """
+        Initialize with the master key and a provided salt.
+        If no salt is given, a new one is generated.
+        """
+        self._master_key = master_key
+        self._salt = salt if salt is not None else os.urandom(16)
         self._key = self._derive_key()
         logging.debug(f"Initialized AES256Encryption with key: {self._key.hex()} and salt: {self._salt.hex()}")
     
     def _derive_key(self) -> bytes:
-        """Derive encryption key from master key."""
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
@@ -126,37 +123,29 @@ class AES256Encryption(EncryptionService):
         return kdf.derive(self._master_key)
     
     def encrypt(self, data: bytes) -> bytes:
-        """Encrypt data using AES-256 in GCM mode."""
         iv = os.urandom(12)  # 96-bit IV for GCM
         cipher = Cipher(
             algorithms.AES(self._key),
             modes.GCM(iv),
         )
         encryptor = cipher.encryptor()
-        
         ciphertext = encryptor.update(data) + encryptor.finalize()
         logging.debug(f"Encrypted data with IV: {iv.hex()}, Tag: {encryptor.tag.hex()}, Ciphertext: {ciphertext.hex()}")
-        
-        # Combine IV, ciphertext, and tag
+        # Combine IV, tag, and ciphertext; then base64-encode
         return base64.b64encode(iv + encryptor.tag + ciphertext)
     
     def decrypt(self, encrypted_data: bytes) -> bytes:
-        """Decrypt data using AES-256 in GCM mode."""
-        # Decode and split the components
         raw_data = base64.b64decode(encrypted_data)
         iv = raw_data[:12]
         tag = raw_data[12:28]
         ciphertext = raw_data[28:]
-        
         logging.debug(f"Decrypting data with IV: {iv.hex()}, Tag: {tag.hex()}, Ciphertext length: {len(ciphertext)}")
         logging.debug(f"Using key: {self._key.hex()}")
-        
         cipher = Cipher(
             algorithms.AES(self._key),
             modes.GCM(iv, tag),
         )
         decryptor = cipher.decryptor()
-        
         try:
             decrypted_data = decryptor.update(ciphertext) + decryptor.finalize()
             logging.debug(f"Decryption successful, plaintext: {decrypted_data.decode(errors='ignore')}")
@@ -172,7 +161,6 @@ class AES256Encryption(EncryptionService):
     @property
     def salt(self) -> bytes:
         return self._salt
-
 from typing import Dict, List, Optional
 from password_manager.core.password import Password
 from password_manager.core.encryption import EncryptionService
@@ -291,75 +279,53 @@ class Password:
             username=username,
             encrypted_password=encrypted_password,
             description=description
-        ) from datetime import datetime, timedelta
-from typing import Optional
-from functools import wraps
-import click
-from password_manager.core.auth import AuthenticationService, HashBasedAuth
+        ) # password_manager/cli/session.py
+
+from datetime import datetime, timedelta
 
 class Session:
     """Manages user authentication session."""
     
-    def __init__(self, timeout_minutes: int = 10):
+    def __init__(self, timeout_minutes: int = 30):
         self.timeout_minutes = timeout_minutes
-        self.last_activity: Optional[datetime] = None
-        self.is_authenticated: bool = False
-    
-    def login(self) -> None:
-        """Start a new session."""
-        self.last_activity = datetime.now()
-        self.is_authenticated = True
-    
-    def logout(self) -> None:
-        """End the current session."""
         self.last_activity = None
         self.is_authenticated = False
     
-    def is_valid(self) -> bool:
-        """Check if the current session is valid."""
+    def login(self):
+        self.last_activity = datetime.now()
+        self.is_authenticated = True
+    
+    def logout(self):
+        self.last_activity = None
+        self.is_authenticated = False
+    
+    def is_valid(self):
+        """Check if the session is still within the allowed timeout."""
         if not self.is_authenticated or not self.last_activity:
             return False
-        
-        time_elapsed = datetime.now() - self.last_activity
-        return time_elapsed < timedelta(minutes=self.timeout_minutes)
+        return (datetime.now() - self.last_activity) < timedelta(minutes=self.timeout_minutes)
     
-    def refresh(self) -> None:
-        """Refresh the session timeout."""
+    def refresh(self):
+        """Refresh the session's last activity timestamp."""
         if self.is_authenticated:
             self.last_activity = datetime.now()
 
-# Global session instance
-current_session = Session()
+# Global session instance with a 30-minute timeout
+current_session = Session(timeout_minutes=30)
+# password_manager/cli/commands.py
 
-def require_auth(auth_service):
-    """Decorator to require authentication before executing a command."""
-    def decorator(f):
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            if not current_session.is_authenticated:
-                password = click.prompt("Enter master password", hide_input=True)
-                if auth_service.authenticate(password):
-                    from password_manager.cli.commands import initialize_services
-                    initialize_services(auth_service.get_master_key())
-                    current_session.login()
-                else:
-                    click.echo("Authentication failed.")
-                    return
-            return f(*args, **kwargs)
-        return wrapped
-    return decorator
-
-# ... rest of the session.py content ... import click
-from typing import Optional
-from pathlib import Path
+import click
 import os
+import json
+import base64
+import logging
+from pathlib import Path
 from datetime import datetime, timedelta
-import threading
-from password_manager.core.vault import PasswordVault
-from password_manager.core.encryption import AES256Encryption
-from password_manager.core.auth import HashBasedAuth
-from password_manager.cli.session import current_session, require_auth
 from functools import wraps
+from password_manager.core.auth import HashBasedAuth
+from password_manager.core.encryption import AES256Encryption
+from password_manager.core.vault import PasswordVault
+from password_manager.cli.session import current_session
 
 # Set the data directory to a subdirectory in the user's home directory
 DATA_DIR = Path(os.path.expanduser('~/.password_manager_data'))
@@ -368,17 +334,38 @@ MASTER_PASSWORD_FILE = DATA_DIR / 'master.key'
 # Initialize auth service
 auth_service = HashBasedAuth(MASTER_PASSWORD_FILE)
 
-# Initialize encryption service with None - will be set after authentication
+# Global variables for the encryption service and vault;
+# they will be initialized upon successful authentication.
 encryption_service = None
 vault = None
 
 def initialize_services(master_key: bytes):
-    """Initialize encryption service and vault with the master key."""
+    """Initialize encryption service and vault using the persisted salt."""
     global encryption_service, vault
-    encryption_service = AES256Encryption(master_key=master_key)
+    # Reuse the salt from the auth service to ensure consistent key derivation.
+    encryption_service = AES256Encryption(master_key=master_key, salt=auth_service.salt)
     vault = PasswordVault(encryption_service, DATA_DIR)
 
-# Define the CLI group
+def require_auth(f):
+    """Decorator to require authentication before executing a command."""
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        # Use is_valid() to check if the session has expired
+        if not current_session.is_valid():
+            password = click.prompt("Enter master password", hide_input=True).strip()
+            if auth_service.authenticate(password):
+                initialize_services(auth_service.get_master_key())
+                current_session.login()  # sets last_activity and is_authenticated
+            else:
+                click.echo("Authentication failed.")
+                return
+        else:
+            # If session is valid, refresh the last_activity to extend the timeout
+            current_session.refresh()
+        return f(*args, **kwargs)
+    return wrapped
+
+
 @click.group()
 def cli():
     """Password Manager CLI
@@ -389,38 +376,43 @@ def cli():
     pass
 
 @cli.command()
-@require_auth(auth_service)
-def search():
-    """Search for passwords by domain or description."""
-    query = click.prompt('Search')
-    passwords = vault.list_passwords()
-    
-    found = False
-    for pwd in passwords:
-        if query.lower() in pwd.domain.lower() or query.lower() in pwd.description.lower():
-            found = True
-            click.echo(f"\nDomain: {pwd.domain}")
-            click.echo(f"Username: {pwd.username}")
-            click.echo(f"Description: {pwd.description}")
-            click.echo(f"ID: {pwd.id}")
-            
-            if click.confirm("Show password?"):
-                decrypted = vault.get_decrypted_password(pwd.id)
-                click.echo(f"Password: {decrypted}")
-    
-    if not found:
-        click.echo("No matching passwords found.")
+def set_master_password():
+    """Set or update the master password for authentication."""
+    password = click.prompt('Enter new master password', hide_input=True, confirmation_prompt=True).strip()
+    auth_service.set_master_password(password)
+    initialize_services(auth_service.get_master_key())
+    click.echo("Master password set successfully.")
 
 @cli.command()
-@require_auth(auth_service)
+def authenticate():
+    """Authenticate with the master password."""
+    password = click.prompt("Enter master password", hide_input=True).strip()
+    if auth_service.authenticate(password):
+        initialize_services(auth_service.get_master_key())
+        current_session.login()  # This resets the session timeout
+        click.echo("Authentication successful.")
+    else:
+        click.echo("Authentication failed.")
+
+@cli.command()
+@require_auth
+def add_password():
+    """Add a new password to the vault."""
+    domain = click.prompt('Domain')
+    username = click.prompt('Username')
+    password = click.prompt('Password', hide_input=True).strip()
+    description = click.prompt('Description', default='', show_default=False)
+    password_entry = vault.add_password(domain, username, password, description)
+    click.echo(f"Password for {domain} added successfully with ID: {password_entry.id}")
+
+@cli.command()
+@require_auth
 def list():
     """List all stored passwords with their details."""
     passwords = vault.list_passwords()
-    
     if not passwords:
         click.echo("No passwords stored.")
         return
-    
     for pwd in passwords:
         click.echo(f"\nDomain: {pwd.domain}")
         click.echo(f"Username: {pwd.username}")
@@ -428,7 +420,7 @@ def list():
         click.echo(f"ID: {pwd.id}")
 
 @cli.command()
-@require_auth(auth_service)
+@require_auth
 def show():
     """Show details of a specific password by domain or username."""
     query = click.prompt('Enter domain or username to search')
@@ -447,12 +439,10 @@ def show():
         click.echo("Multiple matches found:")
         for i, pwd in enumerate(matching_passwords, start=1):
             click.echo(f"{i}: Domain: {pwd.domain}, Username: {pwd.username}")
-        
         choice = click.prompt("Select a password by number", type=int)
         if choice < 1 or choice > len(matching_passwords):
             click.echo("Invalid selection.")
             return
-        
         selected_password = matching_passwords[choice - 1]
     
     click.echo(f"\nDomain: {selected_password.domain}")
@@ -460,49 +450,21 @@ def show():
     click.echo(f"Description: {selected_password.description}")
     
     if click.confirm("Show password?"):
-        decrypted = vault.get_decrypted_password(selected_password.id)
-        click.echo(f"Password: {decrypted}")
+        try:
+            decrypted = vault.get_decrypted_password(selected_password.id)
+            click.echo(f"Password: {decrypted}")
+        except Exception as e:
+            click.echo("Failed to decrypt password.")
 
 @cli.command()
-@require_auth(auth_service)
+@require_auth
 def delete():
     """Delete a password from the vault by ID."""
-    id = click.prompt('Password ID')
-    if vault.delete_password(id):
+    pwd_id = click.prompt('Password ID')
+    if vault.delete_password(pwd_id):
         click.echo("Password deleted successfully!")
     else:
         click.echo("Password not found.")
-
-@cli.command()
-def set_master_password():
-    """Set or update the master password for authentication."""
-    password = click.prompt('Enter new master password', hide_input=True, confirmation_prompt=True)
-    auth_service.set_master_password(password)
-    initialize_services(auth_service.get_master_key())
-    click.echo("Master password set successfully.")
-
-@cli.command()
-def authenticate():
-    """Authenticate with the master password."""
-    password = click.prompt("Enter master password", hide_input=True)
-    if auth_service.authenticate(password):
-        initialize_services(auth_service.get_master_key())
-        current_session.login()
-        click.echo("Authentication successful.")
-    else:
-        click.echo("Authentication failed.")
-
-@cli.command()
-@require_auth(auth_service)
-def add_password():
-    """Add a new password to the vault."""
-    domain = click.prompt('Domain')
-    username = click.prompt('Username')
-    password = click.prompt('Password', hide_input=True)
-    description = click.prompt('Description', default='', show_default=False)
-    
-    password_entry = vault.add_password(domain, username, password, description)
-    click.echo(f"Password for {domain} added successfully with ID: {password_entry.id}")
 
 @cli.command()
 def install_completion():
@@ -512,11 +474,8 @@ def install_completion():
 
 def main():
     """Main entry point."""
-    # Ensure data directory exists
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    
-    # Start CLI
     cli()
 
 if __name__ == '__main__':
-    main() 
+    main()

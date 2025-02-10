@@ -1,58 +1,55 @@
+# password_manager/cli/session.py
+
+import json
 from datetime import datetime, timedelta
-from typing import Optional
-from functools import wraps
-import click
-from password_manager.core.auth import AuthenticationService, HashBasedAuth
+from pathlib import Path
+
+SESSION_FILE = Path.home() / ".password_manager_session.json"
 
 class Session:
-    """Manages user authentication session."""
-    
-    def __init__(self, timeout_minutes: int = 10):
+    def __init__(self, timeout_minutes: int = 30):
         self.timeout_minutes = timeout_minutes
-        self.last_activity: Optional[datetime] = None
-        self.is_authenticated: bool = False
-    
-    def login(self) -> None:
-        """Start a new session."""
-        self.last_activity = datetime.now()
-        self.is_authenticated = True
-    
-    def logout(self) -> None:
-        """End the current session."""
         self.last_activity = None
         self.is_authenticated = False
+        self.load_session()
     
-    def is_valid(self) -> bool:
-        """Check if the current session is valid."""
+    def login(self):
+        self.last_activity = datetime.now()
+        self.is_authenticated = True
+        self.save_session()
+    
+    def logout(self):
+        self.last_activity = None
+        self.is_authenticated = False
+        self.save_session()
+    
+    def is_valid(self):
         if not self.is_authenticated or not self.last_activity:
             return False
-        
-        time_elapsed = datetime.now() - self.last_activity
-        return time_elapsed < timedelta(minutes=self.timeout_minutes)
+        return (datetime.now() - self.last_activity) < timedelta(minutes=self.timeout_minutes)
     
-    def refresh(self) -> None:
-        """Refresh the session timeout."""
+    def refresh(self):
         if self.is_authenticated:
             self.last_activity = datetime.now()
+            self.save_session()
+    
+    def save_session(self):
+        session_data = {
+            "is_authenticated": self.is_authenticated,
+            "last_activity": self.last_activity.isoformat() if self.last_activity else None,
+        }
+        with open(SESSION_FILE, "w") as f:
+            json.dump(session_data, f)
+    
+    def load_session(self):
+        if SESSION_FILE.exists():
+            with open(SESSION_FILE, "r") as f:
+                data = json.load(f)
+                self.is_authenticated = data.get("is_authenticated", False)
+                if data.get("last_activity"):
+                    self.last_activity = datetime.fromisoformat(data["last_activity"])
+                else:
+                    self.last_activity = None
 
 # Global session instance
-current_session = Session()
-
-def require_auth(auth_service):
-    def decorator(f):
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            if not current_session.is_authenticated:
-                # Strip any extra whitespace from the input
-                password = click.prompt("Enter master password", hide_input=True).strip()
-                if auth_service.authenticate(password):
-                    from password_manager.cli.commands import initialize_services
-                    initialize_services(auth_service.get_master_key())
-                    current_session.login()
-                else:
-                    click.echo("Authentication failed.")
-                    return
-            return f(*args, **kwargs)
-        return wrapped
-    return decorator
-# ... rest of the session.py content ... 
+current_session = Session(timeout_minutes=30)

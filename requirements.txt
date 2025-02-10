@@ -13,3 +13,4 @@ flake8>=6.1.0
 
 # Type stubs
 types-click>=7.1.8
+pyotp>=2.8.0

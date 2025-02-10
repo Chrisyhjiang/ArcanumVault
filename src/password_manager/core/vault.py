@@ -1,16 +1,17 @@
-from typing import Dict, List, Optional
-from password_manager.core.password import Password
-from password_manager.core.encryption import EncryptionService
+# password_manager/core/vault.py
+
 import json
-import os
-from pathlib import Path
 import base64
+from pathlib import Path
+from typing import Dict, List, Optional
 from datetime import datetime
+from password_manager.core.password import Password
+import os
 
 class PasswordVault:
     """Manages the storage and retrieval of passwords."""
     
-    def __init__(self, encryption_service: EncryptionService, storage_path: Path):
+    def __init__(self, encryption_service, storage_path: Path):
         self.encryption = encryption_service
         self.storage_path = storage_path
         self.storage_path.mkdir(parents=True, exist_ok=True)
@@ -69,8 +70,11 @@ class PasswordVault:
             for id_, p in self._passwords.items()
         }
         
-        with open(self.storage_path / 'passwords.json', 'w') as f:
+        file_path = self.storage_path / 'passwords.json'
+        with open(file_path, 'w') as f:
             json.dump(passwords_data, f, indent=2)
+        # Set file permission to read/write for owner only
+        os.chmod(file_path, 0o600)
     
     def _load_passwords(self):
         """Load passwords from storage."""
@@ -91,4 +95,4 @@ class PasswordVault:
                 for id_, data in passwords_data.items()
             }
         except FileNotFoundError:
-            self._passwords = {} 
+            self._passwords = {}
