@@ -11,6 +11,13 @@ isort>=5.12.0
 mypy>=1.5.0
 flake8>=6.1.0
 
+# QR code generation
+qrcode>=7.4.2
+Pillow>=10.0.0  # For QR code generation
+
 # Type stubs
 types-click>=7.1.8
 pyotp>=2.8.0
+
+# Git integration
+GitPython>=3.1.31

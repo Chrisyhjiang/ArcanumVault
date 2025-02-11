@@ -41,6 +41,8 @@ class HashBasedAuth(AuthenticationService):
         salt = os.urandom(16)
         self.salt_file.parent.mkdir(parents=True, exist_ok=True)
         self.salt_file.write_text(base64.b64encode(salt).decode())
+        # Set file permission to read/write for owner only
+        os.chmod(self.salt_file, 0o600)
         return salt
 
     @property
@@ -75,6 +77,8 @@ class HashBasedAuth(AuthenticationService):
         self._master_key = password_hash
         self.master_password_file.parent.mkdir(parents=True, exist_ok=True)
         self.master_password_file.write_text(base64.b64encode(password_hash).decode())
+        # Set file permission to read/write for owner only
+        os.chmod(self.master_password_file, 0o600)
 # password_manager/core/encryption.py
 
 import os
@@ -161,100 +165,276 @@ class AES256Encryption(EncryptionService):
     @property
     def salt(self) -> bytes:
         return self._salt
-from typing import Dict, List, Optional
+# password_manager/core/folder.py
+from dataclasses import dataclass, field
+from typing import Dict
 from password_manager.core.password import Password
-from password_manager.core.encryption import EncryptionService
+
+@dataclass
+class Folder:
+    name: str
+    folders: Dict[str, 'Folder'] = field(default_factory=dict)
+    passwords: Dict[str, Password] = field(default_factory=dict)
+
+    def add_folder(self, folder_name: str) -> 'Folder':
+        if folder_name in self.folders:
+            raise ValueError(f"Folder '{folder_name}' already exists.")
+        new_folder = Folder(folder_name)
+        self.folders[folder_name] = new_folder
+        return new_folder
+
+    def delete_folder(self, folder_name: str) -> bool:
+        if folder_name in self.folders:
+            del self.folders[folder_name]
+            return True
+        return False
+
+    def add_password(self, password: Password) -> None:
+        self.passwords[password.id] = password
+
+    def delete_password(self, password_id: str) -> bool:
+        if password_id in self.passwords:
+            del self.passwords[password_id]
+            return True
+        return False
+import os
+from git import Repo, GitCommandError
+from typing import Optional
+
+class GitManager:
+    def __init__(self, repo_path: str):
+        """Initialize GitManager with the repository path."""
+        self.repo_path = repo_path
+        self._repo: Optional[Repo] = None
+
+    def initialize_repo(self) -> bool:
+        """Initialize a new git repository if it doesn't exist."""
+        try:
+            if not os.path.exists(os.path.join(self.repo_path, '.git')):
+                self._repo = Repo.init(self.repo_path)
+                return True
+            self._repo = Repo(self.repo_path)
+            return True
+        except GitCommandError as e:
+            print(f"Error initializing git repository: {e}")
+            return False
+
+    def commit_changes(self, message: str) -> bool:
+        """Commit all changes in the repository."""
+        try:
+            if not self._repo:
+                return False
+
+            # Add all changes
+            self._repo.index.add('*')
+            
+            # Check if there are changes to commit
+            if self._repo.is_dirty(untracked_files=True):
+                self._repo.index.commit(message)
+                return True
+            return False
+        except GitCommandError as e:
+            print(f"Error committing changes: {e}")
+            return False
+
+    def get_history(self, max_count: int = 10) -> list:
+        """Get commit history with detailed information about changes."""
+        try:
+            if not self._repo:
+                return []
+            
+            commits = []
+            for commit in self._repo.iter_commits(max_count=max_count):
+                # Get the diff of this commit
+                diffs = []
+                if commit.parents:
+                    for diff in commit.parents[0].diff(commit):
+                        if diff.a_path:
+                            diffs.append({
+                                'path': diff.a_path,
+                                'change_type': diff.change_type
+                            })
+
+                commits.append({
+                    'hash': commit.hexsha,
+                    'message': commit.message,
+                    'author': str(commit.author),
+                    'date': commit.committed_datetime,
+                    'changes': diffs
+                })
+            return commits
+        except GitCommandError as e:
+            print(f"Error getting history: {e}")
+            return [] # password_manager/core/vault.py
 import json
+import base64
 import os
 from pathlib import Path
-import base64
 from datetime import datetime
+from typing import Optional
+from password_manager.core.folder import Folder
+from password_manager.core.password import Password
+from .git_manager import GitManager
 
 class PasswordVault:
-    """Manages the storage and retrieval of passwords."""
+    """Manages password storage in a tree-based folder structure."""
     
-    def __init__(self, encryption_service: EncryptionService, storage_path: Path):
+    def __init__(self, encryption_service, storage_path: Path):
         self.encryption = encryption_service
         self.storage_path = storage_path
         self.storage_path.mkdir(parents=True, exist_ok=True)
-        self._passwords: Dict[str, Password] = {}
-        self._load_passwords()
-    
-    def add_password(self, domain: str, username: str, password: str, description: Optional[str] = None) -> Password:
-        """Add a new password to the vault."""
+        self.root = self._load_tree()
+        self.git_manager = GitManager(storage_path)
+        self.git_manager.initialize_repo()
+
+    def _get_tree_file(self) -> Path:
+        return self.storage_path / 'vault_tree.json'
+
+    def _save_tree(self) -> None:
+        tree_dict = self._folder_to_dict(self.root)
+        file_path = self._get_tree_file()
+        with open(file_path, 'w') as f:
+            json.dump(tree_dict, f, indent=2)
+        os.chmod(file_path, 0o600)
+
+    def _load_tree(self) -> Folder:
+        file_path = self._get_tree_file()
+        if file_path.exists():
+            with open(file_path, 'r') as f:
+                tree_dict = json.load(f)
+            return self._dict_to_folder(tree_dict)
+        else:
+            return Folder(name="root")
+
+    def _folder_to_dict(self, folder: Folder) -> dict:
+        return {
+            "name": folder.name,
+            "folders": {name: self._folder_to_dict(subfolder) for name, subfolder in folder.folders.items()},
+            "passwords": {pid: self._password_to_dict(pwd) for pid, pwd in folder.passwords.items()}
+        }
+
+    def _password_to_dict(self, pwd: Password) -> dict:
+        return {
+            "id": pwd.id,
+            "domain": pwd.domain,
+            "username": pwd.username,
+            "encrypted_password": base64.b64encode(pwd.encrypted_password).decode(),
+            "description": pwd.description,
+            "created_at": pwd.created_at.isoformat(),
+            "modified_at": pwd.modified_at.isoformat()
+        }
+
+    def _dict_to_folder(self, d: dict) -> Folder:
+        folder = Folder(name=d.get("name", "root"))
+        folder.folders = {name: self._dict_to_folder(subfolder) for name, subfolder in d.get("folders", {}).items()}
+        folder.passwords = {}
+        for pid, p_data in d.get("passwords", {}).items():
+            pwd = Password(
+                id=p_data["id"],
+                domain=p_data["domain"],
+                username=p_data["username"],
+                encrypted_password=base64.b64decode(p_data["encrypted_password"]),
+                description=p_data.get("description"),
+                created_at=datetime.fromisoformat(p_data["created_at"]),
+                modified_at=datetime.fromisoformat(p_data["modified_at"])
+            )
+            folder.passwords[pid] = pwd
+        return folder
+
+    def _get_folder_by_path(self, folder_path: str) -> Optional['Folder']:
+        # Normalize the path to handle relative paths.
+        norm_path = os.path.normpath(folder_path)
+        # Treat '.' or './' as root.
+        if norm_path in ['.', './']:
+            norm_path = '/'
+        # If the normalized path does not start with '/', assume it's relative to the root.
+        if not norm_path.startswith('/'):
+            norm_path = '/' + norm_path
+        # If the normalized path is empty or root, return the root folder.
+        if norm_path.strip() in ["", "/"]:
+            return self.root
+        parts = norm_path.strip("/").split("/")
+        current = self.root
+        for part in parts:
+            if part in current.folders:
+                current = current.folders[part]
+            else:
+                return None
+        return current
+
+    # New tree-based operations:
+    def add_password(self, folder_path: str, domain: str, username: str, password: str, description: Optional[str] = None) -> Password:
+        folder = self._get_folder_by_path(folder_path)
+        if folder is None:
+            raise ValueError(f"Folder path '{folder_path}' does not exist.")
         encrypted_password = self.encryption.encrypt(password.encode())
-        password_entry = Password.create(
-            domain=domain,
-            username=username,
-            encrypted_password=encrypted_password,
-            description=description
-        )
-        self._passwords[password_entry.id] = password_entry
-        self._save_passwords()
+        password_entry = Password.create(domain, username, encrypted_password, description)
+        folder.add_password(password_entry)
+        self._save_tree()
+        self.git_manager.commit_changes(f"Added password for {domain} in {folder_path}")
         return password_entry
-    
-    def get_password(self, password_id: str) -> Optional[Password]:
-        """Retrieve a password by its ID."""
-        return self._passwords.get(password_id)
-    
-    def get_decrypted_password(self, password_id: str) -> Optional[str]:
-        """Get the decrypted password string for a given password ID."""
-        password_entry = self.get_password(password_id)
-        if password_entry:
-            decrypted = self.encryption.decrypt(password_entry.encrypted_password)
+
+    def delete_password(self, password_id: str, folder_path: str) -> bool:
+        folder = self._get_folder_by_path(folder_path)
+        if folder is None:
+            return False
+        password = folder.passwords.get(password_id)
+        result = folder.delete_password(password_id)
+        if result and password:
+            self._save_tree()
+            self.git_manager.commit_changes(f"Deleted password for {password.domain} from {folder_path}")
+        return result
+
+    def get_decrypted_password(self, password_id: str, folder_path: str = "/") -> Optional[str]:
+        folder = self._get_folder_by_path(folder_path)
+        if folder is None:
+            return None
+        if password_id in folder.passwords:
+            decrypted = self.encryption.decrypt(folder.passwords[password_id].encrypted_password)
             return decrypted.decode()
         return None
-    
-    def list_passwords(self) -> List[Password]:
-        """List all passwords in the vault."""
-        return list(self._passwords.values())
-    
-    def delete_password(self, password_id: str) -> bool:
-        """Delete a password from the vault."""
-        if password_id in self._passwords:
-            del self._passwords[password_id]
-            self._save_passwords()
-            return True
-        return False
-    
-    def _save_passwords(self):
-        """Save passwords to storage."""
-        passwords_data = {
-            id_: {
-                'id': p.id,
-                'domain': p.domain,
-                'username': p.username,
-                'encrypted_password': base64.b64encode(p.encrypted_password).decode(),
-                'description': p.description,
-                'created_at': p.created_at.isoformat(),
-                'modified_at': p.modified_at.isoformat()
-            }
-            for id_, p in self._passwords.items()
-        }
+
+    def add_folder(self, folder_path: str, new_folder_name: str) -> Folder:
+        folder = self._get_folder_by_path(folder_path)
+        if folder is None:
+            raise ValueError(f"Folder path '{folder_path}' does not exist.")
+        new_folder = folder.add_folder(new_folder_name)
+        self._save_tree()
+        self.git_manager.commit_changes(f"Created new folder '{new_folder_name}' in {folder_path}")
+        return new_folder
+
+    def delete_folder(self, folder_path: str) -> bool:
+        parts = folder_path.strip("/").split("/")
+        if not parts:
+            raise ValueError("Invalid folder path.")
+        folder_name = parts[-1]
+        parent_path = "/" + "/".join(parts[:-1]) if parts[:-1] else "/"
+        parent_folder = self._get_folder_by_path(parent_path)
+        if parent_folder is None:
+            return False
+        result = parent_folder.delete_folder(folder_name)
+        if result:
+            self._save_tree()
+            self.git_manager.commit_changes(f"Deleted folder '{folder_name}' from {parent_path}")
+        return result
+
+    def list_folder(self, folder_path: str) -> Folder:
+        folder = self._get_folder_by_path(folder_path)
+        if folder is None:
+            raise ValueError(f"Folder path '{folder_path}' does not exist.")
+        return folder
+
+    def save(self):
+        """Save the vault and commit changes to git."""
+        self._save_tree()
         
-        with open(self.storage_path / 'passwords.json', 'w') as f:
-            json.dump(passwords_data, f, indent=2)
-    
-    def _load_passwords(self):
-        """Load passwords from storage."""
-        try:
-            with open(self.storage_path / 'passwords.json', 'r') as f:
-                passwords_data = json.load(f)
-                
-            self._passwords = {
-                id_: Password(
-                    id=data['id'],
-                    domain=data['domain'],
-                    username=data['username'],
-                    encrypted_password=base64.b64decode(data['encrypted_password']),
-                    description=data['description'],
-                    created_at=datetime.fromisoformat(data['created_at']),
-                    modified_at=datetime.fromisoformat(data['modified_at'])
-                )
-                for id_, data in passwords_data.items()
-            }
-        except FileNotFoundError:
-            self._passwords = {} from dataclasses import dataclass
+        # Commit changes to git
+        self.git_manager.commit_changes("Updated vault contents")
+
+    def get_history(self, max_count: int = 10):
+        """Get vault change history from git."""
+        return self.git_manager.get_history(max_count)
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 import uuid
@@ -279,41 +459,74 @@ class Password:
             username=username,
             encrypted_password=encrypted_password,
             description=description
-        ) # password_manager/cli/session.py
-
+        )import json
 from datetime import datetime, timedelta
+from pathlib import Path
+
+SESSION_FILE = Path.home() / ".password_manager_session.json"
 
 class Session:
-    """Manages user authentication session."""
-    
     def __init__(self, timeout_minutes: int = 30):
         self.timeout_minutes = timeout_minutes
         self.last_activity = None
         self.is_authenticated = False
-    
-    def login(self):
+        self.master_key = None  # Store the master key (as bytes) if available.
+        self.current_path = "/"  # Default current directory is root.
+        self.load_session()
+
+    def login(self, master_key: bytes):
         self.last_activity = datetime.now()
         self.is_authenticated = True
-    
+        self.master_key = master_key
+        # Set current_path to root by default on login.
+        self.current_path = "/"
+        self.save_session()
+
     def logout(self):
         self.last_activity = None
         self.is_authenticated = False
-    
+        self.master_key = None
+        self.current_path = "/"
+        self.save_session()
+
     def is_valid(self):
-        """Check if the session is still within the allowed timeout."""
         if not self.is_authenticated or not self.last_activity:
             return False
         return (datetime.now() - self.last_activity) < timedelta(minutes=self.timeout_minutes)
-    
+
     def refresh(self):
-        """Refresh the session's last activity timestamp."""
         if self.is_authenticated:
             self.last_activity = datetime.now()
+            self.save_session()
+
+    def save_session(self):
+        session_data = {
+            "is_authenticated": self.is_authenticated,
+            "last_activity": self.last_activity.isoformat() if self.last_activity else None,
+            "master_key": self.master_key.hex() if self.master_key else None,
+            "current_path": self.current_path,
+        }
+        with open(SESSION_FILE, "w") as f:
+            json.dump(session_data, f)
+
+    def load_session(self):
+        if SESSION_FILE.exists():
+            with open(SESSION_FILE, "r") as f:
+                data = json.load(f)
+                self.is_authenticated = data.get("is_authenticated", False)
+                if data.get("last_activity"):
+                    self.last_activity = datetime.fromisoformat(data["last_activity"])
+                else:
+                    self.last_activity = None
+                master_key_hex = data.get("master_key")
+                if master_key_hex:
+                    self.master_key = bytes.fromhex(master_key_hex)
+                else:
+                    self.master_key = None
+                self.current_path = data.get("current_path", "/")
 
 # Global session instance with a 30-minute timeout
 current_session = Session(timeout_minutes=30)
-# password_manager/cli/commands.py
-
 import click
 import os
 import json
@@ -322,27 +535,30 @@ import logging
 from pathlib import Path
 from datetime import datetime, timedelta
 from functools import wraps
+import qrcode
+import pyotp
+
+# Import your modules
 from password_manager.core.auth import HashBasedAuth
 from password_manager.core.encryption import AES256Encryption
 from password_manager.core.vault import PasswordVault
 from password_manager.cli.session import current_session
 
-# Set the data directory to a subdirectory in the user's home directory
+# Set the data directory (e.g., ~/.password_manager_data)
 DATA_DIR = Path(os.path.expanduser('~/.password_manager_data'))
 MASTER_PASSWORD_FILE = DATA_DIR / 'master.key'
+TOTP_SECRET_FILE = DATA_DIR / 'totp.secret'
 
 # Initialize auth service
 auth_service = HashBasedAuth(MASTER_PASSWORD_FILE)
 
-# Global variables for the encryption service and vault;
-# they will be initialized upon successful authentication.
+# Global variables for encryption service and vault; these will be set upon authentication.
 encryption_service = None
 vault = None
 
 def initialize_services(master_key: bytes):
     """Initialize encryption service and vault using the persisted salt."""
     global encryption_service, vault
-    # Reuse the salt from the auth service to ensure consistent key derivation.
     encryption_service = AES256Encryption(master_key=master_key, salt=auth_service.salt)
     vault = PasswordVault(encryption_service, DATA_DIR)
 
@@ -350,37 +566,72 @@ def require_auth(f):
     """Decorator to require authentication before executing a command."""
     @wraps(f)
     def wrapped(*args, **kwargs):
-        # Use is_valid() to check if the session has expired
-        if not current_session.is_valid():
+        if not current_session.is_valid() or current_session.master_key is None:
             password = click.prompt("Enter master password", hide_input=True).strip()
             if auth_service.authenticate(password):
-                initialize_services(auth_service.get_master_key())
-                current_session.login()  # sets last_activity and is_authenticated
+                master_key = auth_service.get_master_key()
+                initialize_services(master_key)
+                current_session.login(master_key)
             else:
                 click.echo("Authentication failed.")
                 return
         else:
-            # If session is valid, refresh the last_activity to extend the timeout
             current_session.refresh()
+            try:
+                initialize_services(current_session.master_key)
+            except Exception as e:
+                click.echo("Failed to reinitialize services. Please authenticate again.")
+                return
         return f(*args, **kwargs)
     return wrapped
-
 
 @click.group()
 def cli():
     """Password Manager CLI
 
-    This tool allows you to securely manage your passwords.
-    Use the commands below to add, search, and manage your passwords.
+    This tool allows you to securely manage your passwords in a tree-based structure.
+    Use the commands below to add, search, and manage your passwords and folders.
     """
     pass
 
 @cli.command()
 def set_master_password():
-    """Set or update the master password for authentication."""
+    """
+    Set or update the master password for authentication.
+    
+    Users can optionally set up 2FA via TOTP for extra security.
+    If 2FA is set up, it will be required to change the master password in the future.
+    """
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    os.chmod(DATA_DIR, 0o700)
+
+    if not TOTP_SECRET_FILE.exists():
+        if click.confirm("Do you want to set up 2FA for extra security?"):
+            totp_secret = pyotp.random_base32()
+            TOTP_SECRET_FILE.write_text(totp_secret)
+            os.chmod(TOTP_SECRET_FILE, 0o600)
+            totp = pyotp.TOTP(totp_secret)
+            provisioning_uri = totp.provisioning_uri(name="password_manager", issuer_name="YourAppName")
+            qr = qrcode.make(provisioning_uri)
+            qr.show()
+            click.echo("A new 2FA secret has been generated and a QR code has been displayed.")
+            click.echo("Please scan the QR code with your authenticator app, then run this command again to change the master password.")
+            return
+        else:
+            click.echo("Proceeding without 2FA. Master password will be set, but future changes won't require 2FA.")
+    else:
+        totp_secret = TOTP_SECRET_FILE.read_text().strip()
+        totp = pyotp.TOTP(totp_secret)
+        code = click.prompt("Enter the current 2FA code from your authenticator app").strip()
+        if not totp.verify(code):
+            click.echo("Invalid 2FA code. Aborting master password change.")
+            return
+
     password = click.prompt('Enter new master password', hide_input=True, confirmation_prompt=True).strip()
     auth_service.set_master_password(password)
-    initialize_services(auth_service.get_master_key())
+    master_key = auth_service.get_master_key()
+    initialize_services(master_key)
+    current_session.login(master_key)
     click.echo("Master password set successfully.")
 
 @cli.command()
@@ -388,51 +639,102 @@ def authenticate():
     """Authenticate with the master password."""
     password = click.prompt("Enter master password", hide_input=True).strip()
     if auth_service.authenticate(password):
-        initialize_services(auth_service.get_master_key())
-        current_session.login()  # This resets the session timeout
+        master_key = auth_service.get_master_key()
+        initialize_services(master_key)
+        current_session.login(master_key)
         click.echo("Authentication successful.")
     else:
         click.echo("Authentication failed.")
 
 @cli.command()
 @require_auth
-def add_password():
-    """Add a new password to the vault."""
+@click.option('--path', default=None, help='Folder path where to add the password. If omitted, uses the current directory.')
+def add_password(path):
+    """Add a new password to the vault in the specified folder."""
+    if path is None:
+        path = current_session.current_path
     domain = click.prompt('Domain')
     username = click.prompt('Username')
-    password = click.prompt('Password', hide_input=True).strip()
+    pwd = click.prompt('Password', hide_input=True).strip()
     description = click.prompt('Description', default='', show_default=False)
-    password_entry = vault.add_password(domain, username, password, description)
-    click.echo(f"Password for {domain} added successfully with ID: {password_entry.id}")
+    try:
+        password_entry = vault.add_password(path, domain, username, pwd, description)
+        click.echo(f"Password for {domain} added successfully with ID: {password_entry.id}")
+    except Exception as e:
+        click.echo(f"Error: {str(e)}")
+
+@cli.command(name="remove")
+@require_auth
+@click.option('--path', default='/', help='Folder path where the password is stored (default: root "/").')
+def remove_password(path):
+    """Remove a password by ID from the specified folder."""
+    pwd_id = click.prompt('Password ID')
+    if vault.delete_password(pwd_id, path):
+        click.echo("Password deleted successfully!")
+    else:
+        click.echo("Password not found.")
 
 @cli.command()
 @require_auth
-def list():
-    """List all stored passwords with their details."""
-    passwords = vault.list_passwords()
-    if not passwords:
-        click.echo("No passwords stored.")
-        return
-    for pwd in passwords:
-        click.echo(f"\nDomain: {pwd.domain}")
-        click.echo(f"Username: {pwd.username}")
-        click.echo(f"Description: {pwd.description}")
-        click.echo(f"ID: {pwd.id}")
+@click.option('--path', default=None, help='Folder path to list. If omitted, uses the current directory.')
+def ls(path):
+    """List the contents of the specified folder."""
+    if path is None:
+        path = current_session.current_path
+    try:
+        folder = vault.list_folder(path)
+        click.echo(f"Contents of folder '{path}':")
+        if folder.folders:
+            click.echo("Folders:")
+            for name in folder.folders:
+                click.echo(f"  {name}/")
+        if folder.passwords:
+            click.echo("Passwords:")
+            for pid, pwd in folder.passwords.items():
+                click.echo(f"  {pid}: {pwd.domain} ({pwd.username})")
+    except Exception as e:
+        click.echo(f"Error: {str(e)}")
 
 @cli.command()
 @require_auth
-def show():
-    """Show details of a specific password by domain or username."""
+@click.argument('folder_path')
+def mkdir(folder_path):
+    """Create a new folder under the specified parent folder path."""
+    new_folder_name = click.prompt("Enter new folder name")
+    try:
+        new_folder = vault.add_folder(folder_path, new_folder_name)
+        click.echo(f"Folder '{new_folder_name}' created under '{folder_path}'.")
+    except Exception as e:
+        click.echo(f"Error: {str(e)}")
+
+@cli.command()
+@require_auth
+@click.argument('folder_path')
+def rmdir(folder_path):
+    """Delete the specified folder (by its full path)."""
+    if vault.delete_folder(folder_path):
+        click.echo(f"Folder '{folder_path}' deleted.")
+    else:
+        click.echo(f"Folder '{folder_path}' not found or could not be deleted.")
+
+@cli.command()
+@require_auth
+@click.option('--path', default='/', help='Folder path to search in (default: root "/").')
+def show(path):
+    """Search for a password by domain or username in the specified folder."""
     query = click.prompt('Enter domain or username to search')
+    try:
+        folder = vault.list_folder(path)
+    except Exception as e:
+        click.echo(f"Error: {str(e)}")
+        return
     matching_passwords = [
-        pwd for pwd in vault.list_passwords()
+        pwd for pwd in folder.passwords.values()
         if query.lower() in pwd.domain.lower() or query.lower() in pwd.username.lower()
     ]
-    
     if not matching_passwords:
-        click.echo("No matching passwords found.")
+        click.echo("No matching passwords found in this folder.")
         return
-    
     if len(matching_passwords) == 1:
         selected_password = matching_passwords[0]
     else:
@@ -444,27 +746,45 @@ def show():
             click.echo("Invalid selection.")
             return
         selected_password = matching_passwords[choice - 1]
-    
     click.echo(f"\nDomain: {selected_password.domain}")
     click.echo(f"Username: {selected_password.username}")
     click.echo(f"Description: {selected_password.description}")
-    
     if click.confirm("Show password?"):
         try:
-            decrypted = vault.get_decrypted_password(selected_password.id)
+            decrypted = vault.get_decrypted_password(selected_password.id, folder_path=path)
             click.echo(f"Password: {decrypted}")
         except Exception as e:
             click.echo("Failed to decrypt password.")
 
 @cli.command()
 @require_auth
-def delete():
-    """Delete a password from the vault by ID."""
+@click.option('--path', default='/', help='Folder path where the password is stored (default: root "/").')
+def delete(path):
+    """Delete a password by ID from the specified folder."""
     pwd_id = click.prompt('Password ID')
-    if vault.delete_password(pwd_id):
+    if vault.delete_password(pwd_id, path):
         click.echo("Password deleted successfully!")
     else:
         click.echo("Password not found.")
+
+@cli.command()
+@require_auth
+@click.argument('folder_path')
+def cd(folder_path):
+    """Change the current directory in the vault."""
+    import os
+    norm_path = os.path.normpath(folder_path)
+    if norm_path in ['.', './']:
+        norm_path = "/"
+    if not norm_path.startswith("/"):
+        norm_path = "/" + norm_path
+    try:
+        _ = vault.list_folder(norm_path)
+        current_session.current_path = norm_path
+        current_session.save_session()
+        click.echo(f"Changed current directory to: {norm_path}")
+    except Exception as e:
+        click.echo(f"Error: {str(e)}")
 
 @cli.command()
 def install_completion():
@@ -472,9 +792,49 @@ def install_completion():
     click.echo("To enable shell completion, add the following line to your shell's configuration file:")
     click.echo('eval "$(_VAULT_COMPLETE=source_bash vault)"')
 
+# --- Git integration ---
+
+def get_active_vault():
+    """Return the active vault, or None if not available."""
+    global vault
+    return vault
+
+@click.group()
+def git():
+    """Git operations for vault history."""
+    pass
+
+@git.command()
+@require_auth
+@click.option('--count', default=10, help='Number of commits to show')
+@click.option('--detailed/--simple', default=False, help='Show detailed change information')
+def history(count, detailed):
+    """Show vault change history with details about what changed."""
+    active_vault = get_active_vault()
+    if not active_vault:
+        click.echo("No active vault. Please authenticate first.")
+        return
+
+    commits = active_vault.get_history(max_count=count)
+    if not commits:
+        click.echo("No history found.")
+        return
+
+    for commit in commits:
+        click.echo(f"\nCommit: {commit['hash'][:8]}")
+        click.echo(f"Author: {commit['author']}")
+        click.echo(f"Date: {commit['date']}")
+        click.echo(f"Action: {commit['message']}")
+        if detailed and commit.get('changes'):
+            click.echo("Changed files:")
+            for change in commit['changes']:
+                click.echo(f"  - {change['change_type']}: {change['path']}")
+
+cli.add_command(git)
+
 def main():
-    """Main entry point."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
+    os.chmod(DATA_DIR, 0o700)
     cli()
 
 if __name__ == '__main__':
